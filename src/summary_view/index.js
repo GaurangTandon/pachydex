@@ -1,5 +1,8 @@
-import { getBatchedEmbeddingsForDocuments, getBatchedEmbeddingsForSummaries } from "../utils/common.js";
+import { getBatchedEmbeddingsForDocuments, getBatchedEmbeddingsForSummaries, getFromSandbox } from "../utils/common.js";
 import { userSummariesDb } from "../utils/indexeddb.js";
+
+// Preload the model so it's ready to go if the user searches anything
+getFromSandbox({ type: 'getModel', });
 
 function formatDate(timestamp) {
   const date = new Date(timestamp);
@@ -53,26 +56,23 @@ function createSummaryCard(summary) {
 
   card.innerHTML = `
           <div class="summary-header">
-            <a href="${summary.url
-    }" target="_blank" class="summary-url" title="${summary.url}">
-              ${new URL(summary.url).hostname}
-            </a>
+            <h2 class="summary-title">
+              <a href="${targetUrl}" target="_blank" title="${pageTitle}">${pageTitle}</a>
+            </h2>
             <div class="summary-header-right">
+              <a href="${summary.url}" target="_blank" class="summary-url" title="${summary.url}">
+                ${new URL(summary.url).hostname}
+              </a>
               <span class="summary-date" title="${exactTimestamp}">${formatDate(summary.timestamp)}</span>
-              <button class="delete-button" data-timestamp="${summary.timestamp
-    }" title="Delete this summary">
+              <button class="delete-button" data-timestamp="${summary.timestamp}" title="Delete this summary">
                 🗑️
               </button>
             </div>
           </div>
-          <h2 class="summary-title">
-            <a href="${targetUrl}" target="_blank" title="${pageTitle}">${pageTitle}</a>
-          </h2>
           <div class="tags-container">
             ${tagsHtml}
           </div>
           <div class="takeaways">
-            <div class="takeaways-title">Key Takeaways:</div>
             ${takeawaysHtml}
           </div>
         `;
@@ -92,6 +92,14 @@ function createSummaryCard(summary) {
       const tag = tagElement.getAttribute("data-tag");
       filterByTag(tag);
     });
+  });
+
+  // Add click event listener to hostname
+  const hostnameLink = card.querySelector(".summary-url");
+  hostnameLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    const hostname = new URL(summary.url).hostname;
+    filterByHostname(hostname);
   });
 
   return card;
@@ -204,7 +212,7 @@ function updateStats(summaries) {
   document.getElementById("takeawayCount").textContent = totalTakeaways;
 }
 
-function displaySummaries(summaries, searchQuery = null, filterTag = null) {
+function displaySummaries(summaries, searchQuery = null, filterTag = null, filterHostname = null) {
   const container = document.getElementById("summariesContainer");
   container.innerHTML = "";
 
@@ -233,11 +241,25 @@ function displaySummaries(summaries, searchQuery = null, filterTag = null) {
     document.getElementById("clearFilter").addEventListener("click", () => {
       loadSummaries();
     });
+  } else if (filterHostname) {
+    const header = document.createElement("div");
+    header.className = "search-results-header";
+    header.innerHTML = `
+      <div class="search-results-title">Hostname: "${filterHostname}" (${summaries.length})</div>
+      <button class="clear-search" id="clearFilter">Show All</button>
+    `;
+    container.appendChild(header);
+
+    document.getElementById("clearFilter").addEventListener("click", () => {
+      loadSummaries();
+    });
   }
 
   summaries.forEach((summary) => {
     container.appendChild(createSummaryCard(summary));
   });
+  // document.querySelector('.search-results-header')?.scrollIntoView();
+  container.scrollTo({ behavior: 'smooth', top: 0 });
 }
 
 /**
@@ -273,6 +295,47 @@ async function filterByTag(tag) {
     }
   } catch (error) {
     console.error("Error filtering by tag:", error);
+    alert("Failed to filter summaries. Please try again.");
+  }
+}
+
+/**
+ * Filter summaries by a specific hostname
+ * @param {string} hostname - The hostname to filter by
+ */
+async function filterByHostname(hostname) {
+  try {
+    const allSummaries = await userSummariesDb.getAll();
+
+    // Filter summaries that have the same hostname
+    const filtered = allSummaries.filter((summary) => {
+      try {
+        return new URL(summary.url).hostname === hostname;
+      } catch {
+        return false;
+      }
+    });
+
+    // Sort by timestamp descending (newest first)
+    filtered.sort((a, b) => b.timestamp - a.timestamp);
+
+    if (filtered.length === 0) {
+      const container = document.getElementById("summariesContainer");
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">🌐</div>
+          <div class="empty-state-text">No summaries found from "${hostname}"</div>
+          <button class="clear-search" style="margin-top: 1rem;" id="clearFilterEmpty">Show All</button>
+        </div>
+      `;
+      document.getElementById("clearFilterEmpty").addEventListener("click", () => {
+        loadSummaries();
+      });
+    } else {
+      displaySummaries(filtered, null, null, hostname);
+    }
+  } catch (error) {
+    console.error("Error filtering by hostname:", error);
     alert("Failed to filter summaries. Please try again.");
   }
 }
@@ -759,6 +822,181 @@ document.getElementById("uploadButton").addEventListener("click", () => {
   document.getElementById("uploadInput").click();
 });
 document.getElementById("uploadInput").addEventListener("change", handleUpload);
+
+/**
+ * Check the AI model availability status
+ */
+async function checkModelStatus() {
+  const banner = document.getElementById('modelStatusBanner');
+
+  try {
+    // Check if the Prompt API is available
+    if (!('LanguageModel' in self)) {
+      showModelBanner(
+        'unavailable',
+        '❌',
+        'AI Model Not Available',
+        'The AI language model is not available in this browser. Please use Chrome Canary or Dev channel with the appropriate flags enabled.',
+        false
+      );
+      return;
+    }
+
+    // Check model availability
+    const availability = await LanguageModel.availability();
+
+    if (availability === 'available') {
+      // Model is ready, hide the banner
+      banner.style.display = 'none';
+    } else if (availability === 'downloadable') {
+      showModelBanner(
+        'downloadable',
+        '⬇️',
+        'AI Model Download Required',
+        'The AI model needs to be downloaded before you can use search features. This may take several minutes.',
+        true,
+        'Download Model'
+      );
+    } else if (availability === 'unavailable') {
+      showModelBanner(
+        'unavailable',
+        '❌',
+        'AI Model Not Available',
+        'The AI model is not available on this device.',
+        false
+      );
+    } else if (availability === 'downloading') {
+      showModelBanner(
+        'downloading',
+        '⏳',
+        'AI Model Downloading',
+        'The AI model is currently being downloaded. Please wait...',
+        false
+      );
+      // Show progress bar for active download
+      document.getElementById('modelStatusProgress').style.display = 'flex';
+    } else {
+      showModelBanner(
+        'unavailable',
+        '⚠️',
+        'Unknown Status',
+        `Unknown availability status: ${availability}`,
+        false
+      );
+    }
+  } catch (error) {
+    console.error('Error checking model status:', error);
+    showModelBanner(
+      'unavailable',
+      '⚠️',
+      'Error Checking Status',
+      `Error checking model status: ${error.message}`,
+      false
+    );
+  }
+}
+
+/**
+ * Show the model status banner with the given information
+ */
+function showModelBanner(status, icon, title, message, showButton, buttonText = '') {
+  const banner = document.getElementById('modelStatusBanner');
+  const iconEl = document.getElementById('modelStatusIcon');
+  const titleEl = document.getElementById('modelStatusTitle');
+  const messageEl = document.getElementById('modelStatusMessage');
+  const actionButton = document.getElementById('modelActionButton');
+  const progressContainer = document.getElementById('modelStatusProgress');
+
+  // Show banner
+  banner.style.display = 'block';
+
+  // Update classes
+  banner.className = 'model-status-banner';
+  if (status === 'downloading' || status === 'downloadable') {
+    banner.classList.add('downloading');
+  } else if (status === 'unavailable') {
+    banner.classList.add('unavailable');
+  }
+
+  // Update content
+  iconEl.textContent = icon;
+  titleEl.textContent = title;
+  messageEl.textContent = message;
+
+  // Handle action button
+  if (showButton) {
+    actionButton.style.display = 'block';
+    actionButton.textContent = buttonText;
+    actionButton.disabled = false;
+  } else {
+    actionButton.style.display = 'none';
+  }
+
+  // Hide progress by default
+  progressContainer.style.display = 'none';
+}
+
+/**
+ * Download and initialize the AI model
+ */
+async function downloadModel() {
+  const progressContainer = document.getElementById('modelStatusProgress');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  const actionButton = document.getElementById('modelActionButton');
+
+  try {
+    // Show downloading status
+    showModelBanner(
+      'downloading',
+      '⏳',
+      'Downloading AI Model',
+      'Please wait while the AI model is being downloaded. This may take several minutes.',
+      false
+    );
+
+    // Show progress bar
+    progressContainer.style.display = 'flex';
+    progressFill.style.width = '0%';
+    progressText.textContent = '0%';
+
+    const session = await self.ai.languageModel.create({
+      monitor(m) {
+        m.addEventListener('downloadprogress', (e) => {
+          const progress = Math.round(e.loaded * 100);
+          progressFill.style.width = `${progress}%`;
+          progressText.textContent = `${progress}%`;
+          console.log(`Downloaded ${progress}%`);
+        });
+      },
+    });
+
+    // Model downloaded successfully - hide banner
+    const banner = document.getElementById('modelStatusBanner');
+    banner.style.display = 'none';
+    console.log('AI model downloaded successfully and is ready to use!');
+
+    // Clean up the session
+    if (session && session.destroy) {
+      session.destroy();
+    }
+  } catch (error) {
+    console.error('Error downloading model:', error);
+    showModelBanner(
+      'unavailable',
+      '❌',
+      'Download Failed',
+      `Failed to download AI model: ${error.message}`,
+      false
+    );
+  }
+}
+
+// Add model action button event listener
+document.getElementById('modelActionButton').addEventListener('click', downloadModel);
+
+// Check model status on page load
+checkModelStatus();
 
 // For debugging
 self.userSummariesDb = userSummariesDb;

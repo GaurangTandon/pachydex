@@ -35,6 +35,10 @@ function mainProcess() {
       });
     }
     if (!element) return ["", ""];
+    if (location.hostname.includes('google.com') && location.pathname.startsWith('/url')) {
+      // This is a redirect page used by google
+      return ["", ""];
+    }
     if (await checkBlacklist()) {
       return ["", ""];
     }

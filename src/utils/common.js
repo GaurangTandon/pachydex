@@ -4,7 +4,7 @@ const sandboxIframe = /** @type {HTMLIFrameElement} */ (
   document.getElementById("sandbox")
 );
 
-/** @type {Object<string, (obj: any) => void} */
+/** @type {Object<string, (obj: any) => void>} */
 const waitingForResponse = {};
 
 export async function getFromSandbox(msg) {
