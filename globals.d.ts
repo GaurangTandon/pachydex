@@ -1,0 +1,1 @@
+declare let chrome: import('@types/chrome');

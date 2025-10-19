@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Logger",
+  "version": "1.0.0",
+  "description": "",
+  "permissions": ["tabs", "alarms", "storage", "unlimitedStorage", "offscreen"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "src/service_worker/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.js"],
+      "all_frames": true
+    }
+  ],
+  "sandbox": {
+    "pages": ["src/sandbox/sandbox.html"]
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "Manage Predictions"
+  }
+}

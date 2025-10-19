@@ -1,0 +1,25 @@
+{
+  "name": "cmdperiod",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.7.5",
+    "@types/chrome": "^0.1.12",
+    "@types/dom-chromium-ai": "^0.0.10",
+    "typescript": "^5.9.2"
+  },
+  "devDependencies": {
+    "vite": "^7.1.9"
+  }
+}
