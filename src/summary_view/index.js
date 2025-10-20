@@ -832,6 +832,7 @@ async function checkModelStatus() {
   try {
     // Check if the Prompt API is available
     if (!('LanguageModel' in self)) {
+      hideMainContent();
       showModelBanner(
         'unavailable',
         '❌',
@@ -846,9 +847,11 @@ async function checkModelStatus() {
     const availability = await LanguageModel.availability();
 
     if (availability === 'available') {
-      // Model is ready, hide the banner
+      // Model is ready, hide the banner and show content
       banner.style.display = 'none';
+      showMainContent();
     } else if (availability === 'downloadable') {
+      hideMainContent();
       showModelBanner(
         'downloadable',
         '⬇️',
@@ -858,6 +861,7 @@ async function checkModelStatus() {
         'Download Model'
       );
     } else if (availability === 'unavailable') {
+      hideMainContent();
       showModelBanner(
         'unavailable',
         '❌',
@@ -866,6 +870,7 @@ async function checkModelStatus() {
         false
       );
     } else if (availability === 'downloading') {
+      hideMainContent();
       showModelBanner(
         'downloading',
         '⏳',
@@ -876,6 +881,7 @@ async function checkModelStatus() {
       // Show progress bar for active download
       document.getElementById('modelStatusProgress').style.display = 'flex';
     } else {
+      hideMainContent();
       showModelBanner(
         'unavailable',
         '⚠️',
@@ -886,6 +892,7 @@ async function checkModelStatus() {
     }
   } catch (error) {
     console.error('Error checking model status:', error);
+    hideMainContent();
     showModelBanner(
       'unavailable',
       '⚠️',
@@ -894,6 +901,26 @@ async function checkModelStatus() {
       false
     );
   }
+}
+
+/**
+ * Hide search and summaries sections
+ */
+function hideMainContent() {
+  const searchSection = document.getElementById('searchSection');
+  const summariesContainer = document.getElementById('summariesContainer');
+  if (searchSection) searchSection.style.display = 'none';
+  if (summariesContainer) summariesContainer.style.display = 'none';
+}
+
+/**
+ * Show search and summaries sections
+ */
+function showMainContent() {
+  const searchSection = document.getElementById('searchSection');
+  const summariesContainer = document.getElementById('summariesContainer');
+  if (searchSection) searchSection.style.display = 'block';
+  if (summariesContainer) summariesContainer.style.display = 'block';
 }
 
 /**
@@ -943,7 +970,6 @@ async function downloadModel() {
   const progressContainer = document.getElementById('modelStatusProgress');
   const progressFill = document.getElementById('progressFill');
   const progressText = document.getElementById('progressText');
-  const actionButton = document.getElementById('modelActionButton');
 
   try {
     // Show downloading status
@@ -971,10 +997,14 @@ async function downloadModel() {
       },
     });
 
-    // Model downloaded successfully - hide banner
+    // Model downloaded successfully - hide banner and show content
     const banner = document.getElementById('modelStatusBanner');
     banner.style.display = 'none';
+    showMainContent();
     console.log('AI model downloaded successfully and is ready to use!');
+
+    // Load summaries now that model is ready
+    loadSummaries();
 
     // Clean up the session
     if (session && session.destroy) {
