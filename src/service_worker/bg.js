@@ -10,8 +10,6 @@ function log(...args) {
   }
 }
 
-const getActiveTab = () =>
-  chrome.tabs.query({ active: true, currentWindow: true });
 let lastScreenshot = null;
 /**
  * @param {string} imageString
@@ -45,31 +43,26 @@ async function convertImageStringToResizedBlob(
 
 /**
  *
- * @param {chrome.tabs.Tab} tab
+ * @param {{ tabId: number, windowId: number, }} tab
  * @returns {Promise<Blob>}
  */
-async function getTabScreenshot(tab) {
-  if (tab) {
-    const windowId = tab.windowId;
-    const tabId = tab.id;
-    if (
-      lastScreenshot &&
-      lastScreenshot.tabId === tabId &&
-      Date.now() - lastScreenshot.time <= 200
-    ) {
-      return lastScreenshot.screenshot;
-    }
-    const image = await chrome.tabs.captureVisibleTab(windowId);
-    const blob = await convertImageStringToResizedBlob(
-      image,
-      "image/jpeg",
-      800,
-      600
-    );
-    lastScreenshot = { tabId, time: Date.now(), screenshot: blob };
-    return blob;
+async function getTabScreenshot({ windowId, tabId }) {
+  if (
+    lastScreenshot &&
+    lastScreenshot.tabId === tabId &&
+    Date.now() - lastScreenshot.time <= 200
+  ) {
+    return lastScreenshot.screenshot;
   }
-  return null;
+  const image = await chrome.tabs.captureVisibleTab(windowId);
+  const blob = await convertImageStringToResizedBlob(
+    image,
+    "image/jpeg",
+    800,
+    600
+  );
+  lastScreenshot = { tabId, time: Date.now(), screenshot: blob };
+  return blob;
 }
 
 // default 0 in case service worker accidentally restarts
@@ -79,32 +72,45 @@ let pendingRequests = {};
 // Cache results in memory to avoid recomputing the summary in the same session for the same pages
 const cachedResults = {};
 
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'isFocused') {
+    activeFrameId = sender.frameId;
+  }
+});
+
 /**
  *
  * @param {number} tabId
- * @param {'success'|'pending'|'fail'} status
+ * @param {'success'|'pending'|'fail'|'waiting'} status
  * @param {string} title
  */
-function setTitleTextAndColor(tabId, status, title) {
-  let text, color;
+export function setTitleTextAndColor(tabId, status, title) {
+  let text,
+    /** @type {string|[number, number, number, number]} */
+    color;
   if (status === "fail") {
     text = "x";
     color = "gray";
   } else if (status === "pending") {
     text = "⟳";
     color = "orange";
-  } else {
+  } else if (status === 'waiting') {
+    text = '⏳';
+    color = [0, 0, 0, 0];
+  } else if (status === 'success') {
     text = "✓";
     color = "green";
+  } else {
+    console.error('Unknown status: ' + status);
   }
   chrome.action.setBadgeText({ tabId, text });
   chrome.action.setBadgeBackgroundColor({ tabId, color });
-  chrome.action.setTitle({ tabId, title: status === 'fail' ? 'Could not summarize page because: ' + title : title });
+  chrome.action.setTitle({ tabId, title: status === 'fail' ? 'Could not save this page because: ' + title : title });
 }
 /**
  * @param {Number} tabId
  */
-function resetBadge(tabId) {
+export function resetBadge(tabId) {
   chrome.action.setBadgeText({ tabId, text: '' });
   chrome.action.setTitle({ tabId, title: '', });
 }
@@ -144,59 +150,79 @@ function normalizeUrl(url) {
   return urlObject.href;
 }
 
-const MAX_CONCURRENT_REQUESTS = 3;
-export async function gatherInfo() {
-  // log("Checking tab if needs prediction");
-  const tab = (await getActiveTab())[0];
-  if (!tab?.id) {
-    log("Exit because invalid tab", tab?.url);
-    return;
-  }
-  const tabId = tab.id,
-    frameId = activeFrameId,
-    key = tabId + "," + frameId;
-  let tabNormalizedURL = '';
-  const tabOriginalURL = tab.url;
+/**
+ * @param {number} tabId 
+ * @returns {Promise<boolean>}
+ */
+export async function isCSActive(tabId) {
+  return await chrome.tabs
+    .sendMessage(tabId, { type: "isAlive" }, { frameId: activeFrameId })
+    .then((x) => !!x?.isAlive)
+    .catch(() => false);
+}
+/**
+ * @param {number} tabId 
+ * @returns {Promise<number>}
+ */
+export async function getCSTimeSpent(tabId) {
+  return await chrome.tabs
+    .sendMessage(tabId, { type: "getTimeSpent" }, { frameId: activeFrameId })
+    .then((x) => x.duration);
+}
 
+export const INACCESSIBLE_REASON = 'this webpage is inaccessible to Chrome extensions';
+const SAVING_REASON = 'Saving this page...';
+const MAX_CONCURRENT_REQUESTS = 3;
+/**
+ * @param {string} url 
+ * @returns 
+ */
+export function getNormalizedURL(url) {
   try {
-    tabNormalizedURL = normalizeUrl(tabOriginalURL)
+    const tabNormalizedURL = normalizeUrl(url)
+    return tabNormalizedURL;
   } catch (e) {
-    log('Exit on invalid URL', tabOriginalURL);
-    return;
+    return '';
   }
+}
+/**
+ * @param {number} tabId
+ */
+function getKey(tabId) {
+  return tabId + "," + activeFrameId;
+}
+/**
+ * @param {number} tabId 
+ * @param {string} url 
+ * @returns 
+ */
+export function checkCacheOrPending(tabId, url) {
+  const tabNormalizedURL = getNormalizedURL(url);
+  const key = getKey(tabId);
   if (cachedResults[key]?.url === tabNormalizedURL) {
     const cacheResult = cachedResults[key];
-    setTitleTextAndColor(tabId, cacheResult.success, cacheResult.success ? 'Web page saved successfully' : cacheResult.reason);
+    setTitleTextAndColor(tabId, cacheResult.success ? 'success' : 'fail', cacheResult.success ? 'Web page saved successfully' : cacheResult.reason);
     log("Exit because already calculated", tabNormalizedURL);
-    return;
+    return true;
   }
   if (pendingRequests[key]?.url === tabNormalizedURL) {
     log("Exit because already running with the same URL", tabNormalizedURL);
-    return;
+    setTitleTextAndColor(tabId, "pending", SAVING_REASON);
+    return true;
   }
-  console.log(pendingRequests);
+  return false;
+}
+export async function gatherInfo({ tabId, windowId, title, url: tabOriginalURL, }) {
+  const frameId = activeFrameId, key = getKey(tabId);
+
+  let tabNormalizedURL = getNormalizedURL(tabOriginalURL);
   const controller = new AbortController();
   pendingRequests[key] = { controller, timestamp: Date.now(), url: tabNormalizedURL };
 
-  const isCsActive = await chrome.tabs
-    .sendMessage(tab.id, { type: "isAlive" }, { frameId: activeFrameId })
-    .then((x) => !!x?.isAlive)
-    .catch(() => false);
-  if (!isCsActive) {
-    log("Exit because CS inactive", tabOriginalURL);
-    if (tabOriginalURL.startsWith('chrome-extension://') && tabOriginalURL.endsWith('summary_view/index.html')) {
-      // don't show badge on the extension's own page haha
-      resetBadge(tab.id);
-    } else {
-      setTitleTextAndColor(tab.id, "fail", 'this webpage is inaccessible to Chrome extensions');
-    }
-    delete pendingRequests[key];
-    return;
-  }
   let screenshot = null, documentContent = ['', ''];
   try {
     [screenshot, documentContent] = await Promise.all([
-      getTabScreenshot(tab),
+      getTabScreenshot({ tabId, windowId }),
       chrome.tabs
         .sendMessage(tabId, { type: "getContent" }, { frameId })
         .then((x) => x.content)
@@ -222,8 +248,9 @@ export async function gatherInfo() {
     log("🗑️", "Discarded request on", request.url);
   }
   try {
-    setTitleTextAndColor(tabId, "pending", 'Saving this page...');
+    setTitleTextAndColor(tabId, "pending", SAVING_REASON);
     const prediction = await getPrediction({
+      url: tabOriginalURL,
       screenshot,
       documentContent,
       controller,
@@ -242,7 +269,7 @@ export async function gatherInfo() {
         tags: prediction.tags,
         takeaways: prediction.takeaways,
         url: tabOriginalURL, // store the real URL as it would contain the original www. (or not) and the original hash
-        title: tab.title,
+        title,
       });
       setTitleTextAndColor(tabId, "success", 'Web page saved successfully');
     } else {

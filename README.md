@@ -1,4 +1,6 @@
-# Web Indexer
+# Pachydex 🐘
+
+**Your AI-Powered Memory Vault** - Like an elephant, Pachydex never forgets what you've read.
 
 ## Requirements
 

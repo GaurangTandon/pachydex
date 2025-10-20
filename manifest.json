@@ -1,9 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Logger",
+  "name": "Pachydex",
   "version": "1.0.0",
-  "description": "",
-  "permissions": ["tabs", "alarms", "storage", "unlimitedStorage", "offscreen"],
+  "description": "Your AI-powered memory vault - never forget what you've read on the web.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["tabs", "alarms", "storage", "unlimitedStorage", "offscreen", "scripting"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "src/service_worker/background.js",
@@ -21,6 +27,12 @@
   },
   "action": {
     "default_popup": "src/popup/popup.html",
-    "default_title": "Manage Predictions"
+    "default_title": "Pachydex - Memory Vault",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
   }
 }

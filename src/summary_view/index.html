@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Summaries 📚</title>
+    <title>Pachydex - Your Memory Vault 🐘</title>
     <!-- Material Design Icons -->
     <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
@@ -160,32 +160,77 @@
       }
 
       .model-status-banner {
-        background: var(--md-surface);
+        background: linear-gradient(135deg, #fff9f0 0%, #fff4e6 100%);
         border-radius: 28px;
-        padding: 20px 32px;
+        padding: 40px;
         margin-bottom: 24px;
-        box-shadow: var(--md-elevation-2);
-        border-left: 5px solid var(--md-primary);
+        box-shadow: var(--md-elevation-3);
+        border: 3px solid #ffb74d;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .model-status-banner::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 183, 77, 0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        50% { transform: translate(-10px, -10px) rotate(5deg); }
       }
 
       .model-status-banner.downloading {
-        border-left-color: #ff9800;
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border-color: #42a5f5;
       }
 
       .model-status-banner.unavailable {
-        border-left-color: #f44336;
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        border-color: #ef5350;
+      }
+
+      .model-status-banner.downloadable {
+        background: linear-gradient(135deg, #fff9f0 0%, #ffe0b2 100%);
+        border-color: #ffb74d;
       }
 
       .model-status-content {
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 32px;
+        position: relative;
+        z-index: 1;
       }
 
       .model-status-icon {
         font-size: 2.5rem;
         flex-shrink: 0;
+        animation: bounce 2s ease-in-out infinite;
+      }
+
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+
+      .animal-illustration {
+        width: 180px;
+        height: 180px;
+        flex-shrink: 0;
+        animation: wiggle 3s ease-in-out infinite;
+      }
+
+      @keyframes wiggle {
+        0%, 100% { transform: rotate(-3deg); }
+        50% { transform: rotate(3deg); }
       }
 
       .model-status-info {
@@ -193,17 +238,47 @@
       }
 
       .model-status-title {
-        font-size: 1.125rem;
-        font-weight: 500;
+        font-size: 1.5rem;
+        font-weight: 600;
         color: var(--md-on-surface);
-        margin-bottom: 4px;
+        margin-bottom: 8px;
         letter-spacing: 0.01em;
       }
 
       .model-status-message {
-        font-size: 0.9375rem;
+        font-size: 1rem;
         color: var(--md-on-surface-variant);
-        line-height: 1.5;
+        line-height: 1.6;
+      }
+
+      .model-status-message.playful {
+        color: #6d4c41;
+      }
+
+      .model-status-message ul {
+        margin: 12px 0 0 0;
+        padding-left: 24px;
+        list-style: none;
+      }
+
+      .model-status-message li {
+        margin: 8px 0;
+        position: relative;
+        padding-left: 8px;
+      }
+
+      .model-status-message li::before {
+        content: '•';
+        position: absolute;
+        left: -16px;
+        color: var(--md-primary);
+        font-weight: bold;
+        font-size: 1.2em;
+      }
+
+      .model-status-message strong {
+        color: var(--md-on-surface);
+        font-weight: 500;
       }
 
       .model-status-progress {
@@ -238,34 +313,56 @@
       }
 
       .model-action-button {
-        padding: 12px 28px;
-        background: var(--md-primary);
-        color: var(--md-on-primary);
+        padding: 14px 32px;
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        color: white;
         border: none;
-        border-radius: 24px;
-        font-size: 0.9375rem;
-        font-weight: 500;
+        border-radius: 28px;
+        font-size: 1.0625rem;
+        font-weight: 600;
         font-family: 'Roboto', sans-serif;
         letter-spacing: 0.05em;
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: var(--md-elevation-1);
+        box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
         flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .model-action-button::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
       }
 
       .model-action-button:hover {
-        background: #7d8ff7;
-        box-shadow: var(--md-elevation-2);
+        background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+        box-shadow: 0 6px 16px rgba(255, 152, 0, 0.5);
+        transform: translateY(-2px);
+      }
+
+      .model-action-button:hover::after {
+        width: 300px;
+        height: 300px;
       }
 
       .model-action-button:active {
-        box-shadow: var(--md-elevation-1);
-        transform: scale(0.98);
+        transform: translateY(0) scale(0.98);
+        box-shadow: 0 2px 8px rgba(255, 152, 0, 0.4);
       }
 
       .model-action-button:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+        transform: none;
       }
 
       .stat-item {
@@ -647,7 +744,7 @@
   <body>
     <div class="container">
       <div class="header-container">
-        <h1>📚 My Summaries</h1>
+        <h1>🐘 Pachydex</h1>
         <div class="header-stats">
           <div class="stat-item">
             <div class="stat-number" id="totalCount">0</div>

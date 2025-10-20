@@ -4,16 +4,24 @@
     <meta charset="UTF-8" />
     <style>
       body {
-        width: 300px;
+        width: 350px;
         padding: 15px;
         font-family: system-ui, -apple-system, sans-serif;
         margin: 0;
       }
       .status {
-        margin-bottom: 15px;
         padding: 10px;
         border-radius: 4px;
         font-size: 14px;
+        flex: 1;
+      }
+      #status-container {
+        height: 60px;
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
       }
       .status.enabled {
         background-color: #e8f5e9;
@@ -24,16 +32,15 @@
         color: #c62828;
       }
       button {
-        width: 100%;
         padding: 10px;
         border: none;
         border-radius: 4px;
         font-size: 14px;
         cursor: pointer;
         font-weight: 500;
-        margin-bottom: 10px;
       }
       button.summaries {
+        width: 100%;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         font-size: 16px;
@@ -41,6 +48,7 @@
         font-weight: 600;
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         transition: all 0.3s;
+        margin-bottom: 10px;
       }
       button.summaries:hover {
         transform: translateY(-2px);
@@ -50,14 +58,16 @@
       button.enable {
         background-color: #4caf50;
         color: white;
+        border: 1px solid transparent;
+      }
+      #toggleButton {
+        width: 150px;
+        box-sizing: border-box;
       }
       button.disable {
         background-color: transparent;
         color: #666;
         border: 1px solid #ddd;
-        font-size: 12px;
-        padding: 8px;
-        font-weight: 400;
       }
       button.disable:hover {
         background-color: #f5f5f5;
@@ -97,12 +107,18 @@
         outline: none;
         border-color: #4caf50;
       }
+      #live-status {
+        margin-bottom: 10px;
+      }
     </style>
   </head>
   <body>
-    <button id="summariesButton" class="summaries">📚 View My Summaries</button>
-    <div id="status" class="status"></div>
-    <button id="toggleButton"></button>
+    <button id="summariesButton" class="summaries">🐘 View Pachydex</button>
+    <div id="live-status"></div>
+    <div id="status-container">
+      <div id="status" class="status"></div>
+      <button id="toggleButton"></button>
+    </div>
     <div id="url" class="url"></div>
     <div class="language-selector">
       <label for="languageSelect">Language:</label>

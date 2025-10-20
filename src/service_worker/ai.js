@@ -483,6 +483,7 @@ function getOneSummary(session, documentContent, screenshot, controller) {
 }
 
 /**
+ * @param {string} url
  * @param {LanguageModel} session
  * @param {string} documentContent
  * @param {Blob} screenshot
@@ -490,6 +491,7 @@ function getOneSummary(session, documentContent, screenshot, controller) {
  * @returns
  */
 function getOneClassification(
+  url,
   session,
   documentContent,
   screenshot,
@@ -500,7 +502,7 @@ function getOneClassification(
       {
         role: "user",
         content: [
-          { type: "text", value: documentContent },
+          { type: "text", value: "URL of webpage is: \"" + url + "\"\n\n\n" + documentContent },
           { type: "image", value: screenshot },
         ],
       },
@@ -528,12 +530,13 @@ function getOneClassification(
 }
 
 /**
- * @param {{ screenshot: Blob, documentContent: string[], controller: AbortController, }} message
+ * @param {{ screenshot: Blob, documentContent: string[], controller: AbortController, url: string, }} message
  */
 export async function getPrediction({
   screenshot,
   documentContent,
   controller,
+  url,
 }) {
   /** @type {{ session: LanguageModel, }} */
   let session;
@@ -550,6 +553,7 @@ export async function getPrediction({
   try {
     try {
       predictionText = await getOneClassification(
+        url,
         session.session,
         bigContent,
         screenshot,
@@ -560,6 +564,7 @@ export async function getPrediction({
       if (e.toString().includes("input is too large")) {
         console.log("retrying on small text");
         predictionText = await getOneClassification(
+          url,
           session.session,
           smallContent,
           screenshot,

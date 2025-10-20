@@ -13,8 +13,7 @@ async function setBlacklist(blacklist) {
 }
 
 async function getLanguage() {
-  const result = await chrome.storage.local.get("language");
-  return result.language || "en";
+  return (await chrome.runtime.sendMessage({ type: "getLanguage" })).language;
 }
 
 async function setLanguage(language) {
@@ -34,10 +33,13 @@ async function updateUI() {
   const origin = getOrigin(tab.url);
 
   if (!origin) {
+    document.getElementById("live-status").textContent = '';
     document.getElementById("status").textContent = "Cannot manage this page";
     document.getElementById("toggleButton").style.display = "none";
     return;
   }
+
+  document.getElementById('live-status').textContent = (await chrome.action.getTitle({ tabId: tab.id }));
 
   const blacklist = await getBlacklist();
   const isBlacklisted = blacklist.includes(origin);
@@ -47,12 +49,12 @@ async function updateUI() {
   const urlEl = document.getElementById("url");
 
   if (isBlacklisted) {
-    statusEl.textContent = "🚫 Predictions disabled";
+    statusEl.textContent = "🚫 Predictions disabled on this origin";
     statusEl.className = "status disabled";
     buttonEl.textContent = "Enable Predictions";
     buttonEl.className = "enable";
   } else {
-    statusEl.textContent = "✓ Predictions enabled";
+    statusEl.textContent = "✓ Predictions enabled on this origin";
     statusEl.className = "status enabled";
     buttonEl.textContent = "Disable Predictions";
     buttonEl.className = "disable";

@@ -15,13 +15,91 @@ function mainProcess() {
   const MAX_CAPTCHA_RETRY_DURATION_MS = 10_000;
   const CATPCHA_RETRY_INTERVAL_MS = 1000;
   const MAX_CAPTCHA_RETRY_COUNT = MAX_CAPTCHA_RETRY_DURATION_MS / CATPCHA_RETRY_INTERVAL_MS;
+  function promiseWait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  /**
+   * @returns {Promise<[string, string]>}
+   */
+  async function getYouTubeTranscript() {
+    try {
+      // Try to find transcript panel in YouTube's modern layout.
+      // Transcript is loaded asynchronously and may not be available at mount
+      // See if transcript exists in the page
+      const hasTranscript = () => !!document.querySelector('ytd-transcript-segment-list-renderer #segments-container ytd-transcript-segment-renderer');
+      const styleElm = document.createElement('style');
+
+      if (!hasTranscript()) {
+        styleElm.textContent = `
+ytd-engagement-panel-section-list-renderer[target-id=engagement-panel-searchable-transcript] {
+opacity: 0;
+}
+`;
+        await new Promise((resolve) => {
+          const interval = setInterval(() => {
+            const button = document.querySelector('.ytd-video-description-transcript-section-renderer #primary-button ytd-button-renderer button');
+            if (button) {
+              clearInterval(interval);
+              button.click();
+              resolve();
+            }
+          }, 10);
+        });
+        console.log('clicked button');
+        document.head.append(styleElm);
+      }
+
+      // Don't wait more than ten seconds for the transcript to load after we clicked on the button
+      let interval;
+      let success = false;
+      await Promise.race([promiseWait(10_000), new Promise((resolve) => {
+        interval = setInterval(() => {
+          if (hasTranscript()) {
+            success = true;
+            clearInterval(interval);
+            resolve();
+          }
+        }, 10);
+      })]);
+      // clear interval in case the promiseWait "won" the race
+      clearInterval(interval);
+      if (!success) {
+        return ["", ""];
+      }
+
+      // can't use innertext for the transcript itemsbecause element is hidden
+      const transcript = [...document.querySelectorAll('ytd-transcript-segment-list-renderer #segments-container yt-formatted-string')].map(x => x.textContent).join(' ');
+      styleElm.remove();
+      document.querySelector('ytd-engagement-panel-section-list-renderer[target-id=engagement-panel-searchable-transcript] #visibility-button').querySelector('button').click();
+      console.log('done getting transcript', transcript);
+      const title = document.getElementById('title').innerText;
+      const description = document.getElementById('snippet').innerText;
+      const result = `YouTube video: title "${title}" by channel "${document.getElementById('text').innerText}" with the following description:
+
+"""
+${description}
+"""
+
+and the following transcript:
+
+"""
+${transcript}
+"""`;
+      return [result, result];
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }
+
   /**
    * Converts the given DOM element (typically document.body) to a Markdown string.
    * Handles links, bold text, headings, paragraphs, breaks, and code blocks.
-   *
+   * Only run on YouTube video watch pages
+   * 
    * @param {HTMLElement} element
    * @param {number} retryCount
-   * @returns {Promise<string[]>}
+   * @returns {Promise<[string, string]>}
    */
   async function convertElementToMarkdown(element, retryCount = 0) {
     if (isCaptchaElementPresent() && retryCount < MAX_CAPTCHA_RETRY_COUNT) {
@@ -34,12 +112,17 @@ function mainProcess() {
         }, CATPCHA_RETRY_INTERVAL_MS);
       });
     }
-    if (!element) return ["", ""];
+    if (!element) {
+      console.log('Missing element')
+      return ["", ""];
+    }
     if (location.hostname.includes('google.com') && location.pathname.startsWith('/url')) {
       // This is a redirect page used by google
+      console.log('ignoring google redirect page');
       return ["", ""];
     }
     if (await checkBlacklist()) {
+      console.log('Webpage is blacklisted')
       return ["", ""];
     }
 
@@ -286,12 +369,9 @@ function mainProcess() {
       console.log(markdown, document.activeElement);
       return;
     }
-    const markdowns = [];
     // Trim around the active element if possible
     // At this limit, it consumers 8000 out of the available 9200 tokens
-    for (const limit of [10_000, 25_000]) {
-      markdowns.push(stripStringToLimit(markdown, limit));
-    }
+    const markdowns = /** @type {[string, string]}*/ ([10_000, 25_000].map(x => stripStringToLimit(markdown, x)));
     console.log(markdowns[1]);
 
     return markdowns;
@@ -324,19 +404,46 @@ function mainProcess() {
     return markdown.trim();
   }
 
+  let timeSpent = 0;
+  // https://stackoverflow.com/a/63271409
+  let previousStartTime = document.body.matches(':focus-within') ? Date.now() : -1;
   window.addEventListener("focus", () => {
     if (chrome.runtime.id) {
       // avoid running for orphaned content scripts
       chrome.runtime.sendMessage({ type: "isFocused" });
+      previousStartTime = Date.now();
+    }
+  });
+  window.addEventListener("blur", () => {
+    if (previousStartTime > 0) {
+      timeSpent += Date.now() - previousStartTime;
+      previousStartTime = -1;
     }
   });
 
+
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.type === "getContent") {
-      convertElementToMarkdown(document.body).then((result) => {
-        sendResponse({ content: result });
-      });
+      // Handle YouTube transcript extraction first if on YouTube video
+      (async () => {
+        let ytTranscript = null;
+        if (location.hostname.includes('youtube.com') && location.pathname.startsWith('/watch')) {
+          ytTranscript = await getYouTubeTranscript();
+        }
+        if (ytTranscript?.[0]) {
+          sendResponse({ content: ytTranscript });
+        } else {
+          const markdownResult = await convertElementToMarkdown(document.body);
+          sendResponse({ content: markdownResult });
+        }
+      })();
       return true;
+    } else if (msg.type === "getTimeSpent") {
+      let duration = timeSpent;
+      if (previousStartTime !== -1) {
+        duration += Date.now() - previousStartTime;
+      }
+      sendResponse({ duration, });
     } else if (msg.type === "isAlive") {
       sendResponse({ isAlive: true });
     }

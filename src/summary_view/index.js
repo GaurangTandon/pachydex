@@ -404,15 +404,6 @@ async function handleSearch() {
   const searchButton = document.getElementById("searchButton");
   let searchQuery = searchInput.value.trim();
 
-  if (!searchQuery) {
-    // TODO: for testing
-    searchQuery =
-      "What are some examples of online companies deceiving their customers and changing their policy terms?";
-    // searchQuery = 'Any Indian cooking recipes?';
-    // searchQuery = "Examples of politically motivated company takeovers";
-    // searchQuery = "dark patterns enforced by big corporations";
-  }
-
   try {
     searchButton.disabled = true;
 
@@ -828,6 +819,14 @@ document.getElementById("uploadInput").addEventListener("change", handleUpload);
  */
 async function checkModelStatus() {
   const banner = document.getElementById('modelStatusBanner');
+  const UNAVAILABLE_REASON = `Oh no! 😢 Pachy can't find the AI model on this device. Let's check if your system meets these requirements:
+        <ul>
+          <li><strong>Operating System:</strong> Windows 10+, macOS 13+ (Ventura and onwards), Linux, or ChromeOS (Chromebook Plus)</li>
+          <li><strong>Storage:</strong> At least 22 GB of free space on the volume that contains your Chrome profile</li>
+          <li><strong>GPU:</strong> Strictly more than 4 GB of VRAM, <strong>OR</strong>, <strong>CPU:</strong> 16 GB of RAM or more and 4 CPU cores or more</li>
+          <li><strong>Network:</strong> Unlimited data or an unmetered connection</li>
+          <li><strong>Note:</strong> Mobile devices (Android, iOS) and ChromeOS on non-Chromebook Plus devices are not yet supported</li>
+        </ul>`;
 
   try {
     // Check if the Prompt API is available
@@ -835,9 +834,9 @@ async function checkModelStatus() {
       hideMainContent();
       showModelBanner(
         'unavailable',
-        '❌',
-        'AI Model Not Available',
-        'The AI language model is not available in this browser. Please use Chrome Canary or Dev channel with the appropriate flags enabled.',
+        getSadAnimalSVG(),
+        '💔 Pachy is Sad',
+        UNAVAILABLE_REASON,
         false
       );
       return;
@@ -855,27 +854,27 @@ async function checkModelStatus() {
       showModelBanner(
         'downloadable',
         '⬇️',
-        'AI Model Download Required',
-        'The AI model needs to be downloaded before you can use search features. This may take several minutes.',
+        '🎉 Let\'s Get You Set Up!',
+        'Hi there! 👋 I\'m Pachy, your elephant companion! Like elephants never forget, Pachydex remembers everything you\'ve read. To unlock the magic of AI-powered search, we need to download an AI model, only once!<br><br>Ready to build your memory vault? Click the button to get started!',
         true,
-        'Download Model'
+        '🚀 \u00a0 Download Model'
       );
     } else if (availability === 'unavailable') {
       hideMainContent();
       showModelBanner(
         'unavailable',
-        '❌',
-        'AI Model Not Available',
-        'The AI model is not available on this device.',
+        getSadAnimalSVG(),
+        '💔 Pachy is Sad',
+        UNAVAILABLE_REASON,
         false
       );
     } else if (availability === 'downloading') {
       hideMainContent();
       showModelBanner(
         'downloading',
-        '⏳',
-        'AI Model Downloading',
-        'The AI model is currently being downloaded. Please wait...',
+        getAnimalSVG(),
+        '✨ Setting up Your Memory Vault!',
+        'Pachy is fetching the AI model... This might take a few minutes. 🌟 Feel free to grab a cup of tea while we work our magic! ☕',
         false
       );
       // Show progress bar for active download
@@ -884,20 +883,20 @@ async function checkModelStatus() {
       hideMainContent();
       showModelBanner(
         'unavailable',
-        '⚠️',
-        'Unknown Status',
-        `Unknown availability status: ${availability}`,
+        getSadAnimalSVG(),
+        '🤔 Hmm, Something\'s Odd',
+        `Pachy encountered an unexpected status: "${availability}". This is unusual! Please try refreshing the page or check back later. 🐘`,
         false
       );
     }
   } catch (error) {
-    console.error('Error checking model status:', error);
+    console.error('Error checking AI model status:', error);
     hideMainContent();
     showModelBanner(
       'unavailable',
-      '⚠️',
-      'Error Checking Status',
-      `Error checking model status: ${error.message}`,
+      getSadAnimalSVG(),
+      '😔 Oops, Something Went Wrong',
+      `Pachy couldn't check the AI model status. Error: ${error.message}<br><br>Try refreshing the page, and if the problem persists, Pachy might need some technical help! 🔧`,
       false
     );
   }
@@ -909,8 +908,12 @@ async function checkModelStatus() {
 function hideMainContent() {
   const searchSection = document.getElementById('searchSection');
   const summariesContainer = document.getElementById('summariesContainer');
+  const headerStats = document.querySelector('.header-stats');
+  const dataControls = document.querySelector('.data-controls');
   if (searchSection) searchSection.style.display = 'none';
   if (summariesContainer) summariesContainer.style.display = 'none';
+  if (headerStats) headerStats.style.display = 'none';
+  if (dataControls) dataControls.style.display = 'none';
 }
 
 /**
@@ -919,8 +922,149 @@ function hideMainContent() {
 function showMainContent() {
   const searchSection = document.getElementById('searchSection');
   const summariesContainer = document.getElementById('summariesContainer');
+  const headerStats = document.querySelector('.header-stats');
+  const dataControls = document.querySelector('.data-controls');
   if (searchSection) searchSection.style.display = 'block';
   if (summariesContainer) summariesContainer.style.display = 'block';
+  if (headerStats) headerStats.style.display = 'flex';
+  if (dataControls) dataControls.style.display = 'flex';
+}
+
+/**
+ * Get a sad elephant SVG illustration
+ */
+function getSadAnimalSVG() {
+  return `
+    <svg class="animal-illustration" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Sad Elephant - Pachydex mascot -->
+      
+      <!-- Body -->
+      <ellipse cx="100" cy="135" rx="55" ry="50" fill="#9e9e9e" />
+      
+      <!-- Head -->
+      <circle cx="100" cy="80" r="42" fill="#b0b0b0" />
+      
+      <!-- Left Ear (drooping) -->
+      <ellipse cx="58" cy="75" rx="25" ry="35" fill="#b0b0b0" transform="rotate(-35 58 75)" />
+      <ellipse cx="58" cy="77" rx="18" ry="28" fill="#d4d4d4" transform="rotate(-35 58 77)" />
+      
+      <!-- Right Ear (drooping) -->
+      <ellipse cx="142" cy="75" rx="25" ry="35" fill="#b0b0b0" transform="rotate(35 142 75)" />
+      <ellipse cx="142" cy="77" rx="18" ry="28" fill="#d4d4d4" transform="rotate(35 142 77)" />
+      
+      <!-- Trunk (drooping lower) -->
+      <path d="M 100 95 Q 102 115 98 130 Q 95 145 88 152 Q 85 155 84 158" 
+            stroke="#a0a0a0" stroke-width="18" fill="none" stroke-linecap="round" />
+      <path d="M 100 95 Q 102 115 98 130 Q 95 145 88 152 Q 85 155 84 158" 
+            stroke="#b8b8b8" stroke-width="14" fill="none" stroke-linecap="round" />
+      
+      <!-- Trunk tip detail -->
+      <ellipse cx="84" cy="158" rx="8" ry="6" fill="#a0a0a0" />
+      
+      <!-- Left Eye (sad) -->
+      <ellipse cx="82" cy="74" rx="4" ry="5" fill="#2d2d2d" />
+      <circle cx="84" cy="72" r="1.5" fill="#fff" />
+      
+      <!-- Right Eye (sad) -->
+      <ellipse cx="118" cy="74" rx="4" ry="5" fill="#2d2d2d" />
+      <circle cx="120" cy="72" r="1.5" fill="#fff" />
+      
+      <!-- Sad eyebrows -->
+      <path d="M 75 68 Q 80 65 85 66" stroke="#2d2d2d" stroke-width="2" fill="none" stroke-linecap="round" />
+      <path d="M 115 66 Q 120 65 125 68" stroke="#2d2d2d" stroke-width="2" fill="none" stroke-linecap="round" />
+      
+      <!-- Tusks -->
+      <path d="M 88 88 Q 85 95 83 102" stroke="#f5f5f5" stroke-width="4" fill="none" stroke-linecap="round" />
+      <path d="M 112 88 Q 115 95 117 102" stroke="#f5f5f5" stroke-width="4" fill="none" stroke-linecap="round" />
+      
+      <!-- Sad frown -->
+      <path d="M 88 90 Q 100 87 112 90" stroke="#2d2d2d" stroke-width="2" fill="none" stroke-linecap="round" />
+      
+      <!-- Left Front Leg -->
+      <rect x="70" y="160" width="18" height="35" rx="9" fill="#9e9e9e" />
+      <ellipse cx="79" cy="193" rx="10" ry="6" fill="#7a7a7a" />
+      
+      <!-- Right Front Leg -->
+      <rect x="112" y="160" width="18" height="35" rx="9" fill="#9e9e9e" />
+      <ellipse cx="121" cy="193" rx="10" ry="6" fill="#7a7a7a" />
+      
+      <!-- Tear drop on left cheek -->
+      <ellipse cx="75" cy="85" rx="3" ry="5" fill="#87ceeb" opacity="0.8" />
+      <circle cx="75" cy="82" r="2" fill="#b3e5fc" opacity="0.6" />
+      
+      <!-- Small broken heart (representing unavailable) -->
+      <g opacity="0.7" transform="translate(155, 50)">
+        <path d="M 0 8 L -6 2 Q -8 0 -8 -3 Q -8 -6 -5 -8 Q -2 -10 0 -7" fill="#e57373" />
+        <path d="M 0 8 L 6 2 Q 8 0 8 -3 Q 8 -6 5 -8 Q 2 -10 0 -7" fill="#e57373" />
+        <line x1="-2" y1="0" x2="2" y2="0" stroke="#fff" stroke-width="1.5" />
+      </g>
+    </svg>
+  `;
+}
+
+/**
+ * Get a cute elephant SVG illustration
+ */
+function getAnimalSVG() {
+  return `
+    <svg class="animal-illustration" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Happy Elephant - Pachydex mascot -->
+      
+      <!-- Body -->
+      <ellipse cx="100" cy="135" rx="55" ry="50" fill="#9e9e9e" />
+      
+      <!-- Head -->
+      <circle cx="100" cy="80" r="42" fill="#b0b0b0" />
+      
+      <!-- Left Ear -->
+      <ellipse cx="60" cy="70" rx="25" ry="35" fill="#b0b0b0" transform="rotate(-25 60 70)" />
+      <ellipse cx="60" cy="72" rx="18" ry="28" fill="#d4d4d4" transform="rotate(-25 60 72)" />
+      
+      <!-- Right Ear -->
+      <ellipse cx="140" cy="70" rx="25" ry="35" fill="#b0b0b0" transform="rotate(25 140 70)" />
+      <ellipse cx="140" cy="72" rx="18" ry="28" fill="#d4d4d4" transform="rotate(25 140 72)" />
+      
+      <!-- Trunk -->
+      <path d="M 100 95 Q 105 110 100 125 Q 95 140 85 145 Q 80 147 78 150" 
+            stroke="#a0a0a0" stroke-width="18" fill="none" stroke-linecap="round" />
+      <path d="M 100 95 Q 105 110 100 125 Q 95 140 85 145 Q 80 147 78 150" 
+            stroke="#b8b8b8" stroke-width="14" fill="none" stroke-linecap="round" />
+      
+      <!-- Trunk tip detail -->
+      <ellipse cx="78" cy="150" rx="8" ry="6" fill="#a0a0a0" />
+      
+      <!-- Left Eye -->
+      <circle cx="82" cy="72" r="5" fill="#2d2d2d" />
+      <circle cx="84" cy="70" r="2" fill="#fff" />
+      
+      <!-- Right Eye -->
+      <circle cx="118" cy="72" r="5" fill="#2d2d2d" />
+      <circle cx="120" cy="70" r="2" fill="#fff" />
+      
+      <!-- Tusks -->
+      <path d="M 88 88 Q 85 95 83 102" stroke="#f5f5f5" stroke-width="4" fill="none" stroke-linecap="round" />
+      <path d="M 112 88 Q 115 95 117 102" stroke="#f5f5f5" stroke-width="4" fill="none" stroke-linecap="round" />
+      
+      <!-- Smile -->
+      <path d="M 88 85 Q 100 90 112 85" stroke="#2d2d2d" stroke-width="2" fill="none" stroke-linecap="round" />
+      
+      <!-- Left Front Leg -->
+      <rect x="70" y="160" width="18" height="35" rx="9" fill="#9e9e9e" />
+      <ellipse cx="79" cy="193" rx="10" ry="6" fill="#7a7a7a" />
+      
+      <!-- Right Front Leg -->
+      <rect x="112" y="160" width="18" height="35" rx="9" fill="#9e9e9e" />
+      <ellipse cx="121" cy="193" rx="10" ry="6" fill="#7a7a7a" />
+      
+      <!-- Memory sparkles (representing never forgetting) -->
+      <g opacity="0.8">
+        <path d="M 165 55 L 167 60 L 172 58 L 168 63 L 173 68 L 167 66 L 165 71 L 163 66 L 157 68 L 162 63 L 158 58 L 163 60 Z" fill="#667eea" />
+        <path d="M 35 100 L 37 104 L 41 102 L 38 107 L 42 111 L 37 109 L 35 114 L 33 109 L 28 111 L 32 107 L 29 102 L 33 104 Z" fill="#667eea" />
+        <path d="M 160 130 L 161 133 L 164 132 L 162 135 L 165 138 L 161 137 L 160 140 L 159 137 L 155 138 L 158 135 L 156 132 L 159 133 Z" fill="#667eea" />
+        <path d="M 45 50 L 46 53 L 49 52 L 47 55 L 50 58 L 46 57 L 45 60 L 44 57 L 40 58 L 43 55 L 41 52 L 44 53 Z" fill="#764ba2" />
+      </g>
+    </svg>
+  `;
 }
 
 /**
@@ -939,16 +1083,27 @@ function showModelBanner(status, icon, title, message, showButton, buttonText = 
 
   // Update classes
   banner.className = 'model-status-banner';
-  if (status === 'downloading' || status === 'downloadable') {
+  if (status === 'downloading') {
     banner.classList.add('downloading');
+  } else if (status === 'downloadable') {
+    banner.classList.add('downloadable');
   } else if (status === 'unavailable') {
     banner.classList.add('unavailable');
   }
 
   // Update content
-  iconEl.textContent = icon;
+  if (status === 'downloadable' || status === 'downloading') {
+    iconEl.innerHTML = getAnimalSVG();
+  } else if (status === 'unavailable') {
+    iconEl.innerHTML = getSadAnimalSVG();
+  } else {
+    iconEl.innerHTML = icon;
+  }
   titleEl.textContent = title;
-  messageEl.textContent = message;
+  messageEl.innerHTML = message;
+  if (status === 'downloadable' || status === 'downloading' || status === 'unavailable') {
+    messageEl.classList.add('playful');
+  }
 
   // Handle action button
   if (showButton) {
@@ -975,9 +1130,9 @@ async function downloadModel() {
     // Show downloading status
     showModelBanner(
       'downloading',
-      '⏳',
-      'Downloading AI Model',
-      'Please wait while the AI model is being downloaded. This may take several minutes.',
+      getAnimalSVG(),
+      '✨ Building Your Memory Vault!',
+      'Pachy is fetching the AI model... This might take a few minutes, but like an elephant never forgets, this will be worth the wait! 🌟 Feel free to grab a cup of tea while we work our magic! ☕',
       false
     );
 
@@ -986,7 +1141,7 @@ async function downloadModel() {
     progressFill.style.width = '0%';
     progressText.textContent = '0%';
 
-    const session = await self.ai.languageModel.create({
+    const session = await LanguageModel.create({
       monitor(m) {
         m.addEventListener('downloadprogress', (e) => {
           const progress = Math.round(e.loaded * 100);
@@ -1014,9 +1169,9 @@ async function downloadModel() {
     console.error('Error downloading model:', error);
     showModelBanner(
       'unavailable',
-      '❌',
-      'Download Failed',
-      `Failed to download AI model: ${error.message}`,
+      getSadAnimalSVG(),
+      '😢 Download Didn\'t Work',
+      `Pachy tried really hard, but the download failed: ${error.message}<br><br>Don't worry! You can try again later, or check your internet connection. Pachy will be here waiting! 💙`,
       false
     );
   }
