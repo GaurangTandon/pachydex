@@ -1,12 +1,13 @@
 # Pachydex 🐘
 
-**Your AI-Powered Memory Vault** - Like an elephant, Pachydex never forgets what you've read.
+**Your AI-Powered Memory Vault** - Like an elephant, Pachydex never forgets what you've read. If you read lots of articles or watch lots of videos on the internet, and want to semantically search from any past article or video, this Chrome extension is for you.
 
-## Requirements
+**Primary features**
 
-1. Automatically index relevant content on the web with zero user interaction
-2. All processing must be 100% on-device.
-3. Search should be robust even with 10K+ count of entries in the database.
+1. Automatic indexing of RELEVANT content from ALL articles or videos on the web (without any user interaction)
+2. 100% on-device processing ensures complete privacy.
+3. Smart AI based classification and content handling ignores irrelevant text from the web, such as invisible elements, captcha blockers, cookie popups, redirects, etc.
+4. Smart AI embeddings based search is robust even with 10K+ count of entries (when you read ten articles per day for several years).
 
 ## Overall extension flow
 

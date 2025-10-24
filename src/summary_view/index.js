@@ -696,20 +696,21 @@ async function handleDownload() {
     const summaries = await userSummariesDb.getAll();
     let dateStr = new Date().toISOString();
 
-    // Download JSON file first
-    const jsonStr = JSON.stringify(summaries, null, 2);
-    const jsonBlob = new Blob([jsonStr], { type: "application/json" });
-    const jsonUrl = URL.createObjectURL(jsonBlob);
-    const jsonLink = document.createElement("a");
-    jsonLink.href = jsonUrl;
-    jsonLink.download = `summaries-backup-${dateStr}.json`;
-    document.body.appendChild(jsonLink);
-    jsonLink.click();
-    document.body.removeChild(jsonLink);
-    URL.revokeObjectURL(jsonUrl);
+    // NOTE: can uncomment JSON download if binary format has issues
+    // // Download JSON file first
+    // const jsonStr = JSON.stringify(summaries, null, 2);
+    // const jsonBlob = new Blob([jsonStr], { type: "application/json" });
+    // const jsonUrl = URL.createObjectURL(jsonBlob);
+    // const jsonLink = document.createElement("a");
+    // jsonLink.href = jsonUrl;
+    // jsonLink.download = `summaries-backup-${dateStr}.json`;
+    // document.body.appendChild(jsonLink);
+    // jsonLink.click();
+    // document.body.removeChild(jsonLink);
+    // URL.revokeObjectURL(jsonUrl);
 
-    // Small delay to ensure downloads don't conflict
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    // // Small delay to ensure downloads don't conflict
+    // await new Promise((resolve) => setTimeout(resolve, 100));
     dateStr = new Date().toISOString();
 
     // Then download binary file
@@ -1132,7 +1133,7 @@ async function downloadModel() {
       'downloading',
       getAnimalSVG(),
       '✨ Building Your Memory Vault!',
-      'Pachy is fetching the AI model... This might take a few minutes, but like an elephant never forgets, this will be worth the wait! 🌟 Feel free to grab a cup of tea while we work our magic! ☕',
+      'Pachy is fetching the AI model... This might take a few minutes, but this will be worth the wait! 🌟 Feel free to grab a cup of tea while we work our magic! ☕',
       false
     );
 

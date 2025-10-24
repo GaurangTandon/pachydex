@@ -18,30 +18,35 @@
       /* Material Design 3 Color Palette - Vibrant Positive Tones */
       :root {
         --md-primary: #667eea;
-        --md-primary-container: #E3E8FF;
-        --md-on-primary: #FFFFFF;
+        --md-primary-container: #e3e8ff;
+        --md-on-primary: #ffffff;
         --md-on-primary-container: #1a237e;
-        --md-secondary: #5B71E6;
-        --md-secondary-container: #DDE4FF;
-        --md-on-secondary: #FFFFFF;
-        --md-on-secondary-container: #1C2B6B;
+        --md-secondary: #5b71e6;
+        --md-secondary-container: #dde4ff;
+        --md-on-secondary: #ffffff;
+        --md-on-secondary-container: #1c2b6b;
         --md-tertiary: #764ba2;
-        --md-tertiary-container: #F3E5FF;
-        --md-surface: #FFFBFE;
-        --md-surface-variant: #E8EAF6;
-        --md-on-surface: #1C1B1F;
-        --md-on-surface-variant: #49454F;
-        --md-outline: #9575CD;
-        --md-background: #FEF7FF;
-        --md-error: #E53935;
-        --md-error-container: #FFEBEE;
-        
+        --md-tertiary-container: #f3e5ff;
+        --md-surface: #fffbfe;
+        --md-surface-variant: #e8eaf6;
+        --md-on-surface: #1c1b1f;
+        --md-on-surface-variant: #49454f;
+        --md-outline: #9575cd;
+        --md-background: #fef7ff;
+        --md-error: #e53935;
+        --md-error-container: #ffebee;
+
         /* Material shadows */
-        --md-elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
-        --md-elevation-2: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
-        --md-elevation-3: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px 0 rgba(0, 0, 0, 0.3);
-        --md-elevation-4: 0 6px 10px 4px rgba(0, 0, 0, 0.15), 0 2px 3px 0 rgba(0, 0, 0, 0.3);
-        --md-elevation-5: 0 8px 12px 6px rgba(0, 0, 0, 0.15), 0 4px 4px 0 rgba(0, 0, 0, 0.3);
+        --md-elevation-1: 0 1px 2px 0 rgba(0, 0, 0, 0.3),
+          0 1px 3px 1px rgba(0, 0, 0, 0.15);
+        --md-elevation-2: 0 1px 2px 0 rgba(0, 0, 0, 0.3),
+          0 2px 6px 2px rgba(0, 0, 0, 0.15);
+        --md-elevation-3: 0 4px 8px 3px rgba(0, 0, 0, 0.15),
+          0 1px 3px 0 rgba(0, 0, 0, 0.3);
+        --md-elevation-4: 0 6px 10px 4px rgba(0, 0, 0, 0.15),
+          0 2px 3px 0 rgba(0, 0, 0, 0.3);
+        --md-elevation-5: 0 8px 12px 6px rgba(0, 0, 0, 0.15),
+          0 4px 4px 0 rgba(0, 0, 0, 0.3);
       }
 
       * {
@@ -51,7 +56,7 @@
       }
 
       body {
-        font-family: 'Roboto', "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: "Roboto", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
         padding: 24px;
@@ -116,7 +121,7 @@
         border-radius: 20px;
         font-size: 0.875rem;
         font-weight: 500;
-        font-family: 'Roboto', sans-serif;
+        font-family: "Roboto", sans-serif;
         letter-spacing: 0.05em;
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -138,7 +143,7 @@
       }
 
       .data-button::before {
-        content: '';
+        content: "";
         position: absolute;
         top: 50%;
         left: 50%;
@@ -172,19 +177,28 @@
       }
 
       .model-status-banner::before {
-        content: '';
+        content: "";
         position: absolute;
         top: -50%;
         right: -50%;
         width: 200%;
         height: 200%;
-        background: radial-gradient(circle, rgba(255, 183, 77, 0.1) 0%, transparent 70%);
+        background: radial-gradient(
+          circle,
+          rgba(255, 183, 77, 0.1) 0%,
+          transparent 70%
+        );
         animation: float 6s ease-in-out infinite;
       }
 
       @keyframes float {
-        0%, 100% { transform: translate(0, 0) rotate(0deg); }
-        50% { transform: translate(-10px, -10px) rotate(5deg); }
+        0%,
+        100% {
+          transform: translate(0, 0) rotate(0deg);
+        }
+        50% {
+          transform: translate(-10px, -10px) rotate(5deg);
+        }
       }
 
       .model-status-banner.downloading {
@@ -217,8 +231,13 @@
       }
 
       @keyframes bounce {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
       }
 
       .animal-illustration {
@@ -229,8 +248,13 @@
       }
 
       @keyframes wiggle {
-        0%, 100% { transform: rotate(-3deg); }
-        50% { transform: rotate(3deg); }
+        0%,
+        100% {
+          transform: rotate(-3deg);
+        }
+        50% {
+          transform: rotate(3deg);
+        }
       }
 
       .model-status-info {
@@ -268,7 +292,7 @@
       }
 
       .model-status-message li::before {
-        content: '•';
+        content: "•";
         position: absolute;
         left: -16px;
         color: var(--md-primary);
@@ -298,7 +322,11 @@
 
       .progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, var(--md-primary), var(--md-secondary));
+        background: linear-gradient(
+          90deg,
+          var(--md-primary),
+          var(--md-secondary)
+        );
         border-radius: 4px;
         transition: width 0.3s ease;
         width: 0%;
@@ -320,7 +348,7 @@
         border-radius: 28px;
         font-size: 1.0625rem;
         font-weight: 600;
-        font-family: 'Roboto', sans-serif;
+        font-family: "Roboto", sans-serif;
         letter-spacing: 0.05em;
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -331,7 +359,7 @@
       }
 
       .model-action-button::after {
-        content: '';
+        content: "";
         position: absolute;
         top: 50%;
         left: 50%;
@@ -419,7 +447,8 @@
         padding: 24px;
         margin-bottom: 16px;
         box-shadow: var(--md-elevation-1);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+          box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         border-left: 5px solid #667eea;
       }
 
@@ -628,7 +657,7 @@
         border: 1px solid var(--md-outline);
         border-radius: 28px;
         font-size: 1rem;
-        font-family: 'Roboto', sans-serif;
+        font-family: "Roboto", sans-serif;
         outline: none;
         background: var(--md-surface);
         color: var(--md-on-surface);
@@ -653,7 +682,7 @@
         border-radius: 28px;
         font-size: 1rem;
         font-weight: 500;
-        font-family: 'Roboto', sans-serif;
+        font-family: "Roboto", sans-serif;
         letter-spacing: 0.05em;
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -685,7 +714,7 @@
         border-radius: 20px;
         font-size: 0.875rem;
         font-weight: 500;
-        font-family: 'Roboto', sans-serif;
+        font-family: "Roboto", sans-serif;
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: var(--md-elevation-1);
@@ -722,7 +751,8 @@
       }
 
       @keyframes pulse {
-        0%, 100% {
+        0%,
+        100% {
           opacity: 1;
         }
         50% {
@@ -776,24 +806,42 @@
             <span>⬆️</span>
             <span>Upload</span>
           </button>
-          <input type="file" id="uploadInput" accept=".json" />
+          <input type="file" id="uploadInput" accept=".bin" />
         </div>
       </div>
 
-      <div class="model-status-banner" id="modelStatusBanner" style="display: none;">
+      <div
+        class="model-status-banner"
+        id="modelStatusBanner"
+        style="display: none"
+      >
         <div class="model-status-content">
           <div class="model-status-icon" id="modelStatusIcon">⏳</div>
           <div class="model-status-info">
-            <div class="model-status-title" id="modelStatusTitle">AI Model Status</div>
-            <div class="model-status-message" id="modelStatusMessage">Checking model availability...</div>
-            <div class="model-status-progress" id="modelStatusProgress" style="display: none;">
+            <div class="model-status-title" id="modelStatusTitle">
+              AI Model Status
+            </div>
+            <div class="model-status-message" id="modelStatusMessage">
+              Checking model availability...
+            </div>
+            <div
+              class="model-status-progress"
+              id="modelStatusProgress"
+              style="display: none"
+            >
               <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
               </div>
               <div class="progress-text" id="progressText">0%</div>
             </div>
           </div>
-          <button class="model-action-button" id="modelActionButton" style="display: none;">Download Model</button>
+          <button
+            class="model-action-button"
+            id="modelActionButton"
+            style="display: none"
+          >
+            Download Model
+          </button>
         </div>
       </div>
 
@@ -814,7 +862,12 @@
       </div>
     </div>
 
-    <iframe id="sandbox" src="../sandbox/sandbox.html" width="1" height="1"></iframe>
+    <iframe
+      id="sandbox"
+      src="../sandbox/sandbox.html"
+      width="1"
+      height="1"
+    ></iframe>
     <script type="module" src="./index.js"></script>
   </body>
 </html>
