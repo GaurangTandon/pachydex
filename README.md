@@ -17,7 +17,9 @@ AI models used:
 - Chrome Built in AI model (Gemini v3Nano) for classification and summarization
 - [EmbeddingGemma model](https://huggingface.co/google/embeddinggemma-300m) (FP32 model) for generating embeddings and semantic search.
 
-## Detailed extension working
+The Chrome extension is written in vanilla JavaScript and uses IndexedDB in Chrome for efficient data storage and retrieval.
+
+## Detailed extension flow
 
 ### Indexing the web (no user interaction)
 
@@ -36,6 +38,15 @@ AI models used:
 1. On the options page, the user can initiate a search based on a query.
 2. The extension uses EmbeddingGemma (the 8-bit quantised version of the 300M parameter model) to generate embeddings for the query, which are obtained in a Float32Array with 768 values.
 3. The extension obtains cosine similarity score of the query embedding against all the pre-computed document embeddings (also using EmbeddingGemma), and returns sorted results based on the score (descending sort).
+
+## Extension components
+
+1. Content script: (a) converts document content to Markdown (so service worker can process it further), and (b) tracks time the user has spent on the page (so service worker knows when to start summarizing a page)
+2. Sandbox document: runs the EmbeddingGemma model to generate embeddings.
+3. Offscreen document: hosts the sandbox.
+4. Service worker: each time a new tab in Chrome is focused or loaded, the service worker will use the AI model to classify the page, summarize it if needed, and store it in the IndexedDB.
+5. Options page: shows the list of previously indexed pages and allows the user to search through them, or download/upload their list of summaries.
+6. Popup: allows the user to enable/disable summarization on a specific page, as well as shows the summarization status on the current page.
 
 ## Notes on real world usage
 
