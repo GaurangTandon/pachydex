@@ -696,18 +696,19 @@ async function handleDownload() {
     const summaries = await userSummariesDb.getAll();
     let dateStr = new Date().toISOString();
 
-    // NOTE: can uncomment JSON download if binary format has issues
+    // NOTE: can uncomment JSON download when binary format has issues
     // // Download JSON file first
-    // const jsonStr = JSON.stringify(summaries, null, 2);
-    // const jsonBlob = new Blob([jsonStr], { type: "application/json" });
-    // const jsonUrl = URL.createObjectURL(jsonBlob);
-    // const jsonLink = document.createElement("a");
-    // jsonLink.href = jsonUrl;
-    // jsonLink.download = `summaries-backup-${dateStr}.json`;
-    // document.body.appendChild(jsonLink);
-    // jsonLink.click();
-    // document.body.removeChild(jsonLink);
-    // URL.revokeObjectURL(jsonUrl);
+    const jsonStr = JSON.stringify(summaries, null, 2);
+    const jsonBlob = new Blob([jsonStr], { type: "application/json" });
+    const jsonUrl = URL.createObjectURL(jsonBlob);
+    const jsonLink = document.createElement("a");
+    jsonLink.href = jsonUrl;
+    jsonLink.download = `summaries-backup-${dateStr}.json`;
+    document.body.appendChild(jsonLink);
+    jsonLink.click();
+    document.body.removeChild(jsonLink);
+    URL.revokeObjectURL(jsonUrl);
+    return;
 
     // // Small delay to ensure downloads don't conflict
     // await new Promise((resolve) => setTimeout(resolve, 100));
