@@ -779,6 +779,14 @@ async function handleUpload(event) {
     if (!confirm(confirmMessage)) {
       return;
     }
+    for (const summary of summaries) {
+      if (summary.embeddings) {
+        if (!summary.embeddings.length) {
+          // became an object during JSON conversion
+          summary.embeddings = new Float32Array(Object.values(summary.embeddings));
+        }
+      }
+    }
 
     // Add all summaries to the database
     await userSummariesDb.putMany(summaries);
