@@ -36,6 +36,7 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 });
 
+/** @type {{ timeout: NodeJS.Timeout, tabId: number, url: string, }} */
 let previousWait = null;
 function getOrigin(url) {
   try {
@@ -48,41 +49,45 @@ async function getBlacklist() {
   const result = await chrome.storage.local.get("blacklist");
   return result.blacklist || [];
 }
-const MIN_TIME_SPENT_MS = 3_000;
+
+// TODO: 30 seconds
+const MIN_TIME_REQUIRED_MS = 3_000;
 const getActiveTab = async () =>
   (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
 async function runner() {
   const tab = await getActiveTab();
   const data = { tabId: tab?.id, windowId: tab?.windowId, url: tab?.url, title: tab?.title, };
   const WAIT_TEXT = 'Waiting for you to spend over thirty seconds on this page, before we save this page.';
-  // console.log(data);
+  console.debug('Runner data', data);
+  if (!data.tabId) {
+    // show failed badge info - don't set any badge info because tab id is missing
+    // setTitleTextAndColor(data.tabId, 'fail', INACCESSIBLE_REASON);
+    clearTimeout(previousWait?.timeout);
+    return;
+  }
+  const tabNormalizedURL = getNormalizedURL(data.url);
+  if (!tabNormalizedURL) {
+    console.debug('Runner exit on invalid URL', data.url);
+    setTitleTextAndColor(data.tabId, 'fail', INACCESSIBLE_REASON);
+    clearTimeout(previousWait?.timeout);
+    return;
+  }
   if (previousWait?.timeout) {
-    if (data.tabId === previousWait.tabId) {
-      // console.log('ignored');
+    if (data.tabId === previousWait.tabId && previousWait.url === tabNormalizedURL) {
+      console.debug('Runner update ignored as already waiting on same tab');
       setTitleTextAndColor(data.tabId, 'waiting', WAIT_TEXT);
       // we got an event elsewhere while we're still waiting for the same active tab
       // ignore the event
       return;
     }
-    // console.log('cleared');
+    console.debug('Runner cleared previous wait timeout, will check new');
     // clear the timer on the active tab as now we'll be looking at some other active tab
     clearTimeout(previousWait?.timeout);
     previousWait = null;
   }
-  if (!data.tabId) {
-    // show failed badge info
-    setTitleTextAndColor(data.tabId, 'fail', INACCESSIBLE_REASON);
-    return;
-  }
-  const tabNormalizedURL = getNormalizedURL(data.url);
-  if (!tabNormalizedURL) {
-    console.debug('Exit on invalid URL', data.url);
-    setTitleTextAndColor(data.tabId, 'fail', INACCESSIBLE_REASON);
-    return;
-  }
   if (!(await isCSActive(data.tabId))) {
     // show failed badge info
-    console.debug("Exit because CS inactive", data.url);
+    console.debug("Runner exit because CS inactive", data.url);
     if (data.url.startsWith('chrome-extension://') && data.url.endsWith('summary_view/index.html')) {
       // don't show badge on the extension's own page haha
       resetBadge(data.tabId);
@@ -93,8 +98,8 @@ async function runner() {
   }
   const blacklist = await getBlacklist();
   const origin = getOrigin(data.url);
-  // console.log(blacklist, origin)
   if (blacklist.includes(origin)) {
+    console.debug("Runner exit as origin is in blacklist", blacklist, origin)
     setTitleTextAndColor(data.tabId, "fail", 'you have disabled predictions on this webpage');
     return;
   }
@@ -102,18 +107,21 @@ async function runner() {
     return;
   }
   const timeSpent = await getCSTimeSpent(data.tabId);
-  const timeRemaining = -timeSpent + MIN_TIME_SPENT_MS;
+  const timeRemaining = MIN_TIME_REQUIRED_MS - timeSpent;
   // console.log('time remaining', timeRemaining);
   if (timeRemaining <= 0) {
+    console.debug("Runner run immediately");
     // run immediately
     gatherInfo(data);
   } else {
+    console.debug("Runner waiting for timeout", timeRemaining);
     previousWait = {
       tabId: data.tabId,
       timeout: setTimeout(() => {
         previousWait = null;
         runner();
       }, timeRemaining),
+      url: tabNormalizedURL
     }
     setTitleTextAndColor(data.tabId, 'waiting', WAIT_TEXT);
   }

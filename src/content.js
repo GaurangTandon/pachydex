@@ -153,8 +153,14 @@ ${transcript}
         continue;
       }
 
-      // Skip non-element nodes
-      if (current.nodeType !== Node.ELEMENT_NODE) {
+      // Skip non-element nodes and svg nodes (which are Element but not HTMLElement)
+      if (current.nodeType !== Node.ELEMENT_NODE || !('click' in current)) {
+        continue;
+      }
+      if (!('innerText' in current) || !('tagName' in current)) {
+        // Found this on MDN site once
+        console.debug(current);
+        console.error('Invalid node in markdown conversion');
         continue;
       }
 
@@ -405,9 +411,15 @@ ${transcript}
   }
 
   let timeSpent = 0;
+  // For whatever reason the StackOverflow approach doesn't work when the page loads
   // https://stackoverflow.com/a/63271409
-  let previousStartTime = document.body.matches(':focus-within') ? Date.now() : -1;
+  const soApproach = document.body.matches(':focus-within');
+  const myApproach = document.hasFocus() && document.activeElement && document.activeElement.tagName !== 'IFRAME';
+  let previousStartTime = soApproach || myApproach ? Date.now() : -1;
+  console.debug('Loaded, start time:', previousStartTime, soApproach, myApproach);
+
   window.addEventListener("focus", () => {
+    console.debug('Focused', previousStartTime, chrome.runtime.id);
     if (chrome.runtime.id) {
       // avoid running for orphaned content scripts
       chrome.runtime.sendMessage({ type: "isFocused" });
@@ -415,6 +427,7 @@ ${transcript}
     }
   });
   window.addEventListener("blur", () => {
+    console.debug('Blurred', previousStartTime);
     if (previousStartTime > 0) {
       timeSpent += Date.now() - previousStartTime;
       previousStartTime = -1;
@@ -440,9 +453,10 @@ ${transcript}
       return true;
     } else if (msg.type === "getTimeSpent") {
       let duration = timeSpent;
-      if (previousStartTime !== -1) {
+      if (previousStartTime > 0) {
         duration += Date.now() - previousStartTime;
       }
+      console.debug('getTimeSpent', { timeSpent, previousStartTime, });
       sendResponse({ duration, });
     } else if (msg.type === "isAlive") {
       sendResponse({ isAlive: true });

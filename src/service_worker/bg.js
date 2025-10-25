@@ -116,8 +116,6 @@ export function resetBadge(tabId) {
 }
 
 /**
- * Normalizes a URL by adding "www." to the hostname if not already present
- * This is necessary to handle some websites that redirect from one version to another
  * @param {string} url
  * @returns {string} Normalized URL string
  */
@@ -144,6 +142,8 @@ function normalizeUrl(url) {
     hostname !== 'localhost' &&
     !hostname.startsWith('127.') &&
     hostname.split('.').length >= 2) { // Has at least domain.tld
+    // Normalizes a URL by adding "www." to the hostname if not already present
+    // This is necessary to handle some websites that redirect from one version to another
     urlObject.hostname = 'www.' + hostname;
   }
 
@@ -202,11 +202,13 @@ export function checkCacheOrPending(tabId, url) {
   if (cachedResults[key]?.url === tabNormalizedURL) {
     const cacheResult = cachedResults[key];
     setTitleTextAndColor(tabId, cacheResult.success ? 'success' : 'fail', cacheResult.success ? 'Web page saved successfully' : cacheResult.reason);
-    log("Exit because already calculated", tabNormalizedURL);
+    console.debug("Exit because already in cached response", tabNormalizedURL);
+    console.debug(cachedResults);
     return true;
   }
   if (pendingRequests[key]?.url === tabNormalizedURL) {
-    log("Exit because already running with the same URL", tabNormalizedURL);
+    console.debug("Exit because already running with the same URL", tabNormalizedURL);
+    console.debug(pendingRequests);
     setTitleTextAndColor(tabId, "pending", SAVING_REASON);
     return true;
   }

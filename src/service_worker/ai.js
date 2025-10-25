@@ -344,7 +344,7 @@ TAGS:
     ],
     expectedOutputs: [{ type: "text", languages: [language] }],
   });
-  return classifierRootSession;
+  return summarizerRootSession;
 }
 
 async function getClassifierRootSession() {
