@@ -403,6 +403,11 @@ async function handleSearch() {
   /** @type {HTMLButtonElement} */
   const searchButton = document.getElementById("searchButton");
   let searchQuery = searchInput.value.trim();
+  if (!searchQuery) {
+    // Clear search filter
+    loadSummaries();
+    return;
+  }
 
   try {
     searchButton.disabled = true;

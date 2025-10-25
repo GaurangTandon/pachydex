@@ -1,4 +1,4 @@
-import { checkCacheOrPending, gatherInfo, getCSTimeSpent, getNormalizedURL, INACCESSIBLE_REASON, isCSActive, resetBadge, setTitleTextAndColor } from "./bg.js";
+import { getCSTimeSpent, getNormalizedURL, INACCESSIBLE_REASON, getCacheWrittenToDB, isCSActive, resetBadge, setResultBadge, setTitleTextAndColor, getAndStoreAvailableCachePromise, populateCache, SAVING_REASON } from "./bg.js";
 import { initEmbeddingProcessor } from "./embedding-processor.js";
 
 // Initialize embedding processor
@@ -50,8 +50,23 @@ async function getBlacklist() {
   return result.blacklist || [];
 }
 
+/**
+ * don't update badge if page is different now than when we started the computation
+ * @param {number} tabId 
+ * @param {string} normalizedUrl 
+ * @param {Parameters<typeof setResultBadge>[1]} result 
+ */
+async function setBadgeWithWaitCheck(tabId, normalizedUrl, result) {
+  const tab = await getActiveTab();
+  if (tab?.id === tabId) {
+    if (getNormalizedURL(tab.url) === normalizedUrl) {
+      setResultBadge(tabId, result);
+    }
+  }
+}
+
 // TODO: 30 seconds
-const MIN_TIME_REQUIRED_MS = 3_000;
+const MIN_TIME_REQUIRED_MS = 30_000;
 const getActiveTab = async () =>
   (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
 async function runner() {
@@ -63,6 +78,7 @@ async function runner() {
     // show failed badge info - don't set any badge info because tab id is missing
     // setTitleTextAndColor(data.tabId, 'fail', INACCESSIBLE_REASON);
     clearTimeout(previousWait?.timeout);
+    previousWait = null;
     return;
   }
   const tabNormalizedURL = getNormalizedURL(data.url);
@@ -70,6 +86,7 @@ async function runner() {
     console.debug('Runner exit on invalid URL', data.url);
     setTitleTextAndColor(data.tabId, 'fail', INACCESSIBLE_REASON);
     clearTimeout(previousWait?.timeout);
+    previousWait = null;
     return;
   }
   if (previousWait?.timeout) {
@@ -82,7 +99,7 @@ async function runner() {
     }
     console.debug('Runner cleared previous wait timeout, will check new');
     // clear the timer on the active tab as now we'll be looking at some other active tab
-    clearTimeout(previousWait?.timeout);
+    clearTimeout(previousWait.timeout);
     previousWait = null;
   }
   if (!(await isCSActive(data.tabId))) {
@@ -103,27 +120,52 @@ async function runner() {
     setTitleTextAndColor(data.tabId, "fail", 'you have disabled predictions on this webpage');
     return;
   }
-  if (checkCacheOrPending(data.tabId, data.url)) {
+  const cacheWrittenResult = getCacheWrittenToDB(data.tabId, data.url);
+  if (cacheWrittenResult) {
+    console.debug("Runner setting from direct cache", data.tabId, data.url)
+    setResultBadge(data.tabId, cacheWrittenResult);
     return;
   }
   const timeSpent = await getCSTimeSpent(data.tabId);
   const timeRemaining = MIN_TIME_REQUIRED_MS - timeSpent;
-  // console.log('time remaining', timeRemaining);
   if (timeRemaining <= 0) {
     console.debug("Runner run immediately");
-    // run immediately
-    gatherInfo(data);
+    setTitleTextAndColor(data.tabId, "pending", SAVING_REASON);
+    // must store the result now, if it's not available, populate it but must store it
+    let resultFromPromise = await getAndStoreAvailableCachePromise(data.tabId, data.title, data.url);
+    if (resultFromPromise) {
+      // result may be missing in case user switched multiple tabs and this tab's prompt session got removed from LRU cache
+      setBadgeWithWaitCheck(data.tabId, tabNormalizedURL, resultFromPromise);
+      return;
+    }
+    const tab = await getActiveTab();
+    // if we're still the active tab, try to populate the cache again
+    if (tab?.id === data.tabId) {
+      if (getNormalizedURL(tab.url) === tabNormalizedURL) {
+        // populate cache and try again
+        populateCache(data.tabId, data.windowId, data.url);
+        resultFromPromise = await getAndStoreAvailableCachePromise(data.tabId, data.title, data.url);
+        if (resultFromPromise) {
+          // result may be missing in case user switched multiple tabs and this tab's prompt session got removed from LRU cache
+          setBadgeWithWaitCheck(data.tabId, tabNormalizedURL, resultFromPromise);
+          return;
+        }
+      }
+    }
+    // some strange problem if failed again
   } else {
     console.debug("Runner waiting for timeout", timeRemaining);
     previousWait = {
       tabId: data.tabId,
       timeout: setTimeout(() => {
+        console.debug('Timeout finished');
         previousWait = null;
         runner();
       }, timeRemaining),
       url: tabNormalizedURL
     }
     setTitleTextAndColor(data.tabId, 'waiting', WAIT_TEXT);
+    populateCache(data.tabId, data.windowId, data.url);
   }
 }
 

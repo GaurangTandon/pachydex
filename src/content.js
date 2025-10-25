@@ -185,7 +185,9 @@ ${transcript}
           // like example:
           // https://media.cnn.com/api/v1/images/stellar/prod/gettyimages-2230342714.jpg?c=original&q=w_1041,c_fill
           const alt = current.getAttribute("alt") || "";
-          results.push(`${prefix}![${alt}]()${suffix}`);
+          if (!alt) {
+            results.push(`${prefix}![${alt}]()${suffix}`);
+          }
           continue;
 
         case "b":
@@ -464,16 +466,24 @@ ${transcript}
   });
 
   /**
-   * Currently supports turnstile and anubis
+   * Currently supports turnstile and anubis and recpatcha
+   * Only supposed to capture full page captcha block 
    * @returns {boolean}
    */
   function isCaptchaElementPresent() {
     const possibleSelectors = [
       '.cf-turnstile',
-      'script[id=anubis_challenge]'
+      'script[id=anubis_challenge]',
     ];
 
-    return document.querySelectorAll(possibleSelectors.join(',')).length > 0;
+    if (document.querySelectorAll(possibleSelectors.join(',')).length > 0) {
+      return true;
+    }
+    // set by recaptcha when trying to access archive.is pages
+    if (document.getElementById('g-host') && document.querySelector('#g-recaptcha iframe')) {
+      return true;
+    }
+    return false;
   }
 }
 mainProcess();
