@@ -1,41 +1,57 @@
 # Pachydex 🐘
 
-**Your AI-Powered Memory Vault** - Pachydex never forgets what you've read. If you read lots of articles or watch lots of videos on the internet, and want to semantically search from any past article or video, this Chrome extension is for you.
+Your AI-Powered Memory Vault - Pachydex never forgets what you've read. Semantically search through every article and video you've encountered on the web.
 
-**Diverse set of use cases:**
+Pachydex supports a diverse set of use cases across different needs:
 
-1. **Students** writing a research paper can quickly find articles they've read that support your claims.
-2. **Professionals** learning new topics can quickly revisit tutorials they watched months ago.
-3. **Engineers** making architectural decisions can find that technical article comparing different approaches they researched months ago.
-4. **Personal users** making a purchasing decision can quickly check those product reviews articles they read weeks ago, or recall the name of the Indian dish they saw last week.
-5. **Writers** can research topics and find inspiration by pulling up all relevant articles they've read previously.
+1. **Students** writing research papers can quickly find articles that support their claims
+1. **Professionals** learning new topics can revisit tutorials watched months ago
+1. **Engineers** making architectural decisions can recall technical comparisons researched earlier
+1. **Writers** researching topics can pull up all relevant articles for inspiration
+1. **Personal** users can find product reviews read weeks ago or remember that Indian dish from last week
 
-and so on...
+...and much more.
 
-**User facing features**
+## Key Features
 
-Why this extension is PERFECT for this job:
+### 🤖 Intelligent & Automatic
 
-1. **Automatic** indexing of **relevant** content from **relevant** articles or videos on the web. This saves the user the time and effort of having to manually save pages they're already reading.
-2. **100% on-device** processing ensures complete privacy for the user. As the extension runs automatically, it's essential it runs on-device only.
-3. **AI-based classification** ignores irrelevant (non-article/non-video) pages from the web, such as search results page, directory pages, etc.
-4. **AI-based summarizer** condenses each article or video into five bullet points. This ensures the key points of the article are strongly represented in the underlying embeddings, ensuring much more accurate search retrieval compared to other approaches.
-5. **AI-based search** captures semantic user intent very well. For example: a search for "Indian dishes" will show an article about the "tandoori naan". The search is also robust even with 10K+ count of entries (when you read ten articles per day for several years).
-6. **Smart content processing** converts the webpage text to Markdown format, allowing the AI to better understand the page structure. The conversion also removes irrelevant content from the page, such as invisible elements, captcha blockers, navbars, cookie popups, redirects, etc. as well as extracts the video transcript from a YouTube video page.
-7. **AI-based tagging** allowing you to quickly view all previous articles matching specific tags.
-8. **AI-based quiz** allows you to practice active recall on articles you've previously read.
-9. **Private and secure**: fully on-device, only one external JavaScript library (`@huggingface/transformers` to run the embeddings model) that too in a separate sandboxed process with no internet access
+- **Auto-indexing** - Captures relevant content as you browse, no manual user interaction needed
+- **Smart classification** - AI filters out irrelevant pages (search results, directory pages, forum homepages, etc.) so your index is not cluttered
+- **Semantic search** - Understands intent: searching "Indian dishes" finds that "tandoori naan" article
+- **AI summarization** - Condenses each page into 5 bullet points (this ensures the key points of the article are strongly represented in the underlying embeddings, ensuring more accurate search retrieval)
+- **Smart tagging** - Automatically assigns three to five tags to each article for quick filtering
+- **Active recall quizzes** - Test your knowledge on previously read articles
 
-AI models used:
+### 🔒 Private & Secure
 
-- Chrome Built in AI model (Gemini v3Nano) for classification, summarization and quiz generation
-- [EmbeddingGemma model](https://huggingface.co/google/embeddinggemma-300m) (FP32 version) for generating embeddings and semantic search.
+- **100% on-device processing** - Your data never leaves your computer
+- **Fully offline** - Works without internet connectivity
+- **Minimal dependencies** - Only uses `@huggingface/transformers` in a separate sandboxed process without internet access
 
-Technologies used:
+### ⚡ Powerful & Efficient
 
-- Manifest V3 Chrome extension, that works fully offline
-- IndexedDB for efficient data storage and retrieval
+- **Scales effortlessly** - Handles thousands of entries with fast search
+- **Smart content processing** - Converts pages to Markdown so AI can understand the page structure better, while also detecting and removing clutter (navbars, popups, captchas, redirects), as well as focusing the content around your current selection
+- **YouTube support** - Extracts and indexes video transcripts
+- **Efficient storage** - Uses IndexedDB for optimal performance
+
+## Technology Stack
+
+### AI Models
+
+- [Chrome Built in AI (Gemini v3Nano)](https://developer.chrome.com/docs/ai/prompt-api) - For the following tasks:
+  - classification of a given web page into article vs non-article
+  - summarization of given web page into few key points
+  - tagging a given webpage
+  - generating a quiz based on articles the user has read previously
+- [EmbeddingGemma model](https://huggingface.co/google/embeddinggemma-300m) (FP32) - For generating embeddings for semantic search
+
+### Platform
+
+- Manifest V3 Chrome Extension
 - Vanilla JavaScript
+- IndexedDB
 
 ## Detailed extension flow
 
@@ -74,3 +90,4 @@ Technologies used:
 ## Future goals
 
 1. Stats section to show how much you've read every week or month
+2. Better AI models to ensure accurate classification and summarization
