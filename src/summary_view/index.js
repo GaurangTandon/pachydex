@@ -1,9 +1,6 @@
 import { getBatchedEmbeddingsForDocuments, getBatchedEmbeddingsForSummaries, getFromSandbox } from "../utils/common.js";
 import { userSummariesDb } from "../utils/indexeddb.js";
 
-// Preload the model so it's ready to go if the user searches anything
-getFromSandbox({ type: 'getModel', });
-
 function formatDate(timestamp) {
   const date = new Date(timestamp);
   const now = new Date();
@@ -1552,3 +1549,7 @@ function escapeHtml(str) {
 }
 
 // ----------------------------------------------------------------
+
+// Preload the model so it's ready to go if the user searches anything
+getFromSandbox({ type: 'getModel', });
+console.log("Sent message to sandbox to load model");

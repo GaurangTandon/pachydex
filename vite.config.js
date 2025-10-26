@@ -6,10 +6,10 @@ import { resolve } from "path";
 
 export default defineConfig({
   build: {
-    outDir: "logger/built",
+    outDir: "src/sandbox/built",
 
     lib: {
-      entry: resolve(__dirname, "logger/hugging.js"),
+      entry: resolve(__dirname, "src/sandbox/hugging.js"),
       fileName: (format) => `hugging.js`,
 
       // Won't minify even after specifying esbuild options

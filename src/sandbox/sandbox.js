@@ -1,4 +1,4 @@
-import { getModel as getModelInner } from "./built/hugging.js";
+// import { getModel as getModelInner } from "./built/hugging.js";
 
 let globalModel;
 let globalModelPromise;
@@ -10,6 +10,9 @@ async function getModel(modelPath) {
     return globalModelPromise;
   }
   console.log("Getting model at path", modelPath);
+  const start0 = performance.now();
+  const { getModel: getModelInner } = await import("./built/hugging.js");
+  console.log('Time taken to load built script', performance.now() - start0)
   const start = performance.now();
   globalModelPromise = getModelInner(modelPath).then((model) => {
     console.log('Time taken to get model', performance.now() - start)
@@ -62,3 +65,5 @@ window.addEventListener("message", (e) => {
     }
   });
 });
+
+console.log("Attached sandbox message listener");
