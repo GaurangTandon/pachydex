@@ -344,7 +344,7 @@ TAGS:
     ],
     expectedOutputs: [{ type: "text", languages: [language] }],
   });
-  return classifierRootSession;
+  return summarizerRootSession;
 }
 
 async function getClassifierRootSession() {
@@ -577,6 +577,7 @@ export async function getPrediction({
   } catch (e) {
     throw e;
   }
+  session.session.destroy();
   const end = Date.now();
   console.log("Raw prediction", predictionText);
   console.log("Prompt response time taken", end - start + "ms");
@@ -612,6 +613,6 @@ export async function getPrediction({
     console.log(predictionText);
     throw e;
   }
-
+  session.session.destroy();
   return prediction;
 }

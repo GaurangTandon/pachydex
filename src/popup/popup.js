@@ -49,18 +49,18 @@ async function updateUI() {
   const urlEl = document.getElementById("url");
 
   if (isBlacklisted) {
-    statusEl.textContent = "🚫 Predictions disabled on this origin";
+    statusEl.textContent = "🚫 Indexing is disabled on this origin";
     statusEl.className = "status disabled";
-    buttonEl.textContent = "Enable Predictions";
+    buttonEl.textContent = "Enable indexing on " + origin;
     buttonEl.className = "enable";
   } else {
-    statusEl.textContent = "✓ Predictions enabled on this origin";
+    statusEl.textContent = "✓ Indexing is enabled on this origin";
     statusEl.className = "status enabled";
-    buttonEl.textContent = "Disable Predictions";
+    buttonEl.textContent = "Disable indexing on " + origin;
     buttonEl.className = "disable";
   }
 
-  urlEl.textContent = "Origin: " + origin;
+  // urlEl.textContent = "Origin: " + origin;
 
   const language = await getLanguage();
   document.getElementById("languageSelect").value = language;

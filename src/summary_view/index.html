@@ -764,6 +764,62 @@
         animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
       }
 
+      /* Quiz flashcard styles */
+      .quiz-card {
+        perspective: 1200px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 24px;
+      }
+
+      .card-inner {
+        /* width: 100%; */
+        max-width: 820px;
+        height: auto;
+        transition: transform 0.9s cubic-bezier(0.2, 1, 0.22, 1);
+        transform-style: preserve-3d;
+        position: relative;
+      }
+
+      .card-inner.flipped {
+        transform: rotateY(180deg);
+      }
+
+      .card-front,
+      .card-back {
+        background: var(--md-surface);
+        border-radius: 16px;
+        padding: 28px;
+        box-shadow: var(--md-elevation-3);
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        position: relative;
+        min-height: 140px;
+      }
+
+      .card-back {
+        transform: rotateY(180deg);
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+      }
+
+      .option-correct {
+        background: rgba(102, 126, 234, 0.12);
+        border-left: 4px solid var(--md-primary);
+        padding-left: 10px;
+        border-radius: 6px;
+      }
+
+      .option-wrong {
+        background: rgba(229, 57, 53, 0.06);
+        border-left: 4px solid var(--md-error);
+        padding-left: 10px;
+        border-radius: 6px;
+      }
+
       iframe {
         position: absolute;
         left: -100px;
@@ -805,6 +861,14 @@
           >
             <span>⬆️</span>
             <span>Upload</span>
+          </button>
+          <button
+            class="data-button"
+            id="takeQuizButton"
+            title="Take a quiz from your summaries"
+          >
+            <span>📝</span>
+            <span>Take Quiz</span>
           </button>
           <input type="file" id="uploadInput" accept=".json" />
         </div>
@@ -859,6 +923,13 @@
 
       <div class="summaries-container" id="summariesContainer">
         <div class="loading">Loading your summaries...</div>
+      </div>
+
+      <!-- Quiz container (hidden by default) -->
+      <div class="summaries-container" id="quizContainer" style="display: none">
+        <div id="quizContent">
+          <!-- Dynamically filled by index.js -->
+        </div>
       </div>
     </div>
 
