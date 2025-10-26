@@ -45,7 +45,7 @@ Pachydex supports a diverse set of use cases across different needs:
   - summarization of given web page into few key points
   - tagging a given webpage
   - generating a quiz based on articles the user has read previously
-- [EmbeddingGemma model](https://huggingface.co/google/embeddinggemma-300m) (FP32) - For generating embeddings for semantic search
+- [EmbeddingGemma model](https://huggingface.co/google/embeddinggemma-300m) (8-bit quantized integer model) - For generating embeddings for semantic search
 
 ### Platform
 

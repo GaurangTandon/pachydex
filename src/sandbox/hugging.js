@@ -14,7 +14,7 @@ export async function getModel(modelPath) {
 
   // pipeline is a higher level function that handles both tokenizer and output generation
   // pads inputs to same length as well :D
-  return pipeline(
+  const pipe = await pipeline(
     "feature-extraction",
     "onnx-community/embeddinggemma-300m-ONNX",
     {
@@ -24,6 +24,9 @@ export async function getModel(modelPath) {
       // https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/discussions/19
       // fp32 crashes so can't use it :/
       dtype: "q8",  // fp32 or q8 or q4. Note: fp16 not supported
+      use_external_data_format: true
     }
   );
+
+  return pipe;
 }
