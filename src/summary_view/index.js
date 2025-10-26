@@ -1218,43 +1218,146 @@ function pickRandomSummaries(summaries, count = 10) {
 async function startQuiz() {
   const btn = /** @type {HTMLButtonElement} */ (document.getElementById('takeQuizButton'));
   btn.disabled = true;
-  const quizContainer = document.getElementById('quizContainer');
-  const summariesContainer = document.getElementById('summariesContainer');
+
   try {
-    // Load summaries and pick up to 10 random from the latest 100
+    // Load all summaries and build tag list
     const allSummaries = await userSummariesDb.getAll();
     if (!allSummaries || allSummaries.length === 0) {
       alert('No summaries available to make a quiz.');
       return;
     }
-    // Sort by timestamp descending (newest first)
-    allSummaries.sort((a, b) => b.timestamp - a.timestamp);
-    const latest100 = allSummaries.slice(0, 200);
-    const selected = pickRandomSummaries(latest100, 10);
 
-    // Ask AI to create questions
-    quizContainer.style.display = 'block';
-    summariesContainer.style.display = 'none';
-    const quizContent = document.getElementById('quizContent');
-    quizContent.innerHTML = `<div class="searching-indicator">🧠 Generating quiz questions...</div>`;
+    // Gather unique tags
+    const tagSet = new Set();
+    allSummaries.forEach((s) => {
+      if (Array.isArray(s.tags)) {
+        s.tags.forEach((t) => tagSet.add(t));
+      }
+    });
+    const availableTags = Array.from(tagSet).sort();
 
-    let questions = null;
-    try {
-      questions = await generateQuestionsWithAI(selected);
-    } catch (e) {
-      console.error('AI question generation failed, falling back to local generator', e);
-      // questions = generateQuestionsLocally(selected);
-    }
-
-    if (!questions || questions.length === 0) {
-      quizContent.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Could not generate quiz questions.</div></div>`;
-      return;
-    }
-
-    runQuizUI(questions);
+    // Show quiz setup screen
+    showQuizSetupScreen(availableTags, allSummaries);
   } finally {
     btn.disabled = false;
   }
+}
+
+function showQuizSetupScreen(availableTags, allSummaries) {
+  const quizSetupContainer = document.getElementById('quizSetupContainer');
+  const summariesContainer = document.getElementById('summariesContainer');
+  const tagsSelectionContainer = document.getElementById('tagsSelectionContainer');
+  const questionCountSlider = document.getElementById('questionCountSlider');
+  const questionCountValue = document.getElementById('questionCountValue');
+  const selectAllTags = document.getElementById('selectAllTags');
+
+  // Hide summaries, show setup
+  summariesContainer.style.display = 'none';
+  quizSetupContainer.style.display = 'block';
+
+  // Populate tags
+  tagsSelectionContainer.innerHTML = '';
+  if (availableTags.length === 0) {
+    tagsSelectionContainer.innerHTML = '<div style="color: var(--md-on-surface-variant);">No tags available</div>';
+    selectAllTags.parentElement.style.display = 'none';
+  } else {
+    availableTags.forEach((tag) => {
+      const label = document.createElement('label');
+      label.className = 'tag-checkbox-label';
+      label.innerHTML = `
+        <input type="checkbox" value="${tag}" class="tag-checkbox" checked />
+        <span>${tag.replace(/_/g, ' ')}</span>
+      `;
+      tagsSelectionContainer.appendChild(label);
+    });
+    selectAllTags.parentElement.style.display = 'inline-flex';
+    selectAllTags.checked = true;
+  }
+
+  // Setup slider event
+  questionCountSlider.addEventListener('input', (e) => {
+    questionCountValue.textContent = e.target.value;
+  });
+
+  // Setup select all checkbox
+  selectAllTags.addEventListener('change', (e) => {
+    const checkboxes = document.querySelectorAll('.tag-checkbox');
+    checkboxes.forEach((cb) => {
+      cb.checked = e.target.checked;
+    });
+  });
+
+  // Monitor individual checkboxes to update select all state
+  tagsSelectionContainer.addEventListener('change', () => {
+    const checkboxes = document.querySelectorAll('.tag-checkbox');
+    const allChecked = Array.from(checkboxes).every((cb) => cb.checked);
+    selectAllTags.checked = allChecked;
+  });
+
+  // Cancel button
+  document.getElementById('cancelQuizSetup').onclick = () => {
+    quizSetupContainer.style.display = 'none';
+    summariesContainer.style.display = 'block';
+  };
+
+  // Start quiz button
+  document.getElementById('startQuizFromSetup').onclick = () => {
+    const selectedTags = Array.from(document.querySelectorAll('.tag-checkbox:checked')).map((cb) => cb.value);
+    const questionCount = parseInt(questionCountSlider.value, 10);
+
+    if (availableTags.length > 0 && selectedTags.length === 0) {
+      alert('Please select at least one tag.');
+      return;
+    }
+
+    // Hide setup, proceed with quiz generation
+    quizSetupContainer.style.display = 'none';
+    generateAndShowQuiz(allSummaries, selectedTags, questionCount);
+  };
+}
+
+async function generateAndShowQuiz(allSummaries, selectedTags, questionCount) {
+  const quizContainer = document.getElementById('quizContainer');
+  const quizContent = document.getElementById('quizContent');
+
+  // Filter summaries by chosen tags
+  let pool = allSummaries.slice();
+  if (selectedTags.length > 0) {
+    pool = pool.filter((s) => Array.isArray(s.tags) && s.tags.some((t) => selectedTags.includes(t)));
+  }
+
+  if (!pool || pool.length === 0) {
+    alert('No summaries match the selected tags.');
+    document.getElementById('summariesContainer').style.display = 'block';
+    return;
+  }
+
+  // Sort by timestamp descending and pick random summaries from most recent subset
+  pool.sort((a, b) => b.timestamp - a.timestamp);
+  const latestSlice = pool.slice(0, 200);
+  const selected = pickRandomSummaries(latestSlice, questionCount);
+
+  // Show quiz container with loading state
+  quizContainer.style.display = 'block';
+  quizContent.innerHTML = `<div class="searching-indicator">🧠 Generating quiz questions...</div>`;
+
+  let questions = null;
+  try {
+    questions = await generateQuestionsWithAI(selected);
+  } catch (e) {
+    console.error('AI question generation failed', e);
+  }
+
+  if (!questions || questions.length === 0) {
+    quizContent.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Could not generate quiz questions.</div></div>`;
+    setTimeout(() => {
+      quizContainer.style.display = 'none';
+      document.getElementById('summariesContainer').style.display = 'block';
+    }, 2000);
+    return;
+  }
+
+  runQuizUI(questions);
 }
 
 async function generateQuestionsWithAI(summaries) {
@@ -1272,6 +1375,12 @@ async function generateQuestionsWithAI(summaries) {
     promptText += `\nSummary ${idx + 1}: title: ${title} \nTakeaways: ${takeaways}\n`;
   });
   console.log(promptText);
+
+  // Store summary references for each question
+  const summaryRefs = summaries.map(s => ({
+    title: s.title || new URL(s.url).hostname,
+    url: s.link || s.url
+  }));
 
   const session = await LanguageModel.create({
     initialPrompts: [
@@ -1337,11 +1446,18 @@ async function generateQuestionsWithAI(summaries) {
       throw e;
     }
   }
-  for (const item of parsed) {
+  for (let i = 0; i < parsed.length; i++) {
+    const item = parsed[i];
     // item.options.push(item.correctAnswer);
     item.correctAnswer = item.options[item.correctIndex];
     shuffleArray(item.options)
     item.correctIndex = item.options.indexOf(item.correctAnswer);
+
+    // Attach summary reference to each question
+    if (summaryRefs[i]) {
+      item.summaryTitle = summaryRefs[i].title;
+      item.summaryUrl = summaryRefs[i].url;
+    }
   }
 
   return parsed;
@@ -1379,6 +1495,12 @@ function runQuizUI(questions) {
 
   function render() {
     const q = questions[current];
+    const summaryLinkHtml = q.summaryUrl && q.summaryTitle
+      ? `<div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--md-outline); font-size: 0.9em; color: var(--md-on-surface-variant);">
+           From: <a href="${escapeHtml(q.summaryUrl)}" target="_blank" style="color: var(--md-primary); text-decoration: none;">${escapeHtml(q.summaryTitle)}</a>
+         </div>`
+      : '';
+
     quizContent.innerHTML = `
       <div class="search-results-header">
         <div class="search-results-title">Quiz ${current + 1}/${questions.length}</div>
@@ -1396,11 +1518,12 @@ function runQuizUI(questions) {
                 </label>
               `)
         .join('')}
-              <div style="margin-top:12px; display:flex; gap:8px;">
+              <div style="margin-top:12px; display:flex; gap:8px; align-items: center; justify-content: space-between;">
                 <button type="submit" class="data-button" id="submitAnswer">Submit</button>
                 <button type="button" class="data-button" id="skipAnswer">Skip</button>
               </div>
             </form>
+            ${summaryLinkHtml}
           </div>
           <div class="card-back" id="cardBack">
             <div style="font-weight:600">Answer</div>
@@ -1409,6 +1532,7 @@ function runQuizUI(questions) {
               <button class="data-button" id="nextButton">Next</button>
               <button class="data-button" id="quitAfter">Quit</button>
             </div>
+            ${summaryLinkHtml}
           </div>
         </div>
       </div>
@@ -1514,11 +1638,19 @@ function showResults(questions, answers) {
     const correct = q.correctIndex;
     const isCorrect = user === correct;
     if (isCorrect) score += 1;
+
+    const summaryLinkHtml = q.summaryUrl && q.summaryTitle
+      ? `<div style="margin-top: 8px; font-size: 0.9em; color: var(--md-on-surface-variant);">
+           From: <a href="${escapeHtml(q.summaryUrl)}" target="_blank" style="color: var(--md-primary); text-decoration: none;">${escapeHtml(q.summaryTitle)}</a>
+         </div>`
+      : '';
+
     return `
       <div class="summary-card" style="margin-bottom:8px;">
         <div style="font-weight:600">Q${i + 1}: ${escapeHtml(q.question)}</div>
         <div style="margin-top:8px;">Correct answer: <strong>${escapeHtml(q.options[correct])}</strong></div>
         <div>Your answer: ${user === null || user === undefined ? '<em>Skipped</em>' : escapeHtml(q.options[user])} ${isCorrect ? '✅' : '❌'}</div>
+        ${summaryLinkHtml}
       </div>
     `;
   });

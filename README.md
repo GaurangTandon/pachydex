@@ -53,6 +53,17 @@ Pachydex supports a diverse set of use cases across different needs:
 - Vanilla JavaScript
 - IndexedDB
 
+## Using / Contributing
+
+You can install directly from the [Chrome Web Store]() - pending review.
+
+To install locally, you can:
+
+1. Clone this repository.
+   - Note: Install Git LFS to clone the model embedding file. If you don't have Git LFS, the searching won't work.
+2. Load the extension in Chrome by navigating to `chrome://extensions/`, enabling "Developer mode", and clicking "Load unpacked".
+3. Select this repository's root
+
 ## Detailed extension flow
 
 ### Indexing the web (no user interaction)
@@ -90,4 +101,5 @@ Pachydex supports a diverse set of use cases across different needs:
 ## Future goals
 
 1. Stats section to show how much you've read every week or month
-2. Better AI models to ensure accurate classification and summarization
+2. Read in-detail content of PDFs and Google Docs
+3. Improve Quiz questions to support free text answers in addition to choice-based questions
