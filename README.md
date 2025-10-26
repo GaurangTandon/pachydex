@@ -1,6 +1,6 @@
 # Pachydex 🐘
 
-**Your AI-Powered Memory Vault** - Like an elephant, Pachydex never forgets what you've read. If you read lots of articles or watch lots of videos on the internet, and want to semantically search from any past article or video, this Chrome extension is for you.
+**Your AI-Powered Memory Vault** - Pachydex never forgets what you've read. If you read lots of articles or watch lots of videos on the internet, and want to semantically search from any past article or video, this Chrome extension is for you.
 
 **Diverse set of use cases:**
 
@@ -19,17 +19,23 @@ Why this extension is PERFECT for this job:
 1. **Automatic** indexing of **relevant** content from **relevant** articles or videos on the web. This saves the user the time and effort of having to manually save pages they're already reading.
 2. **100% on-device** processing ensures complete privacy for the user. As the extension runs automatically, it's essential it runs on-device only.
 3. **AI-based classification** ignores irrelevant (non-article/non-video) pages from the web, such as search results page, directory pages, etc.
-5. **AI-based summarizer** condenses each article or video into five bullet points. This ensures the key points of the article are strongly represented in the underlying embeddings, ensuring much more accurate search retrieval compared to other approaches.
-4. **AI-based search** captures semantic user intent very well. For example: a search for "Indian dishes" will show an article about the "tandoori naan". The search is also robust even with 10K+ count of entries (when you read ten articles per day for several years).
-4. **Smart content processing** converts the webpage text to Markdown format, allowing the AI to better understand the page structure. The conversion also removes irrelevant content from the page, such as invisible elements, captcha blockers, navbars, cookie popups, redirects, etc. as well as extracts the video transcript from a YouTube video page.
-5. **AI-based tagging** allowing you to quickly view all previous articles matching specific tags.
+4. **AI-based summarizer** condenses each article or video into five bullet points. This ensures the key points of the article are strongly represented in the underlying embeddings, ensuring much more accurate search retrieval compared to other approaches.
+5. **AI-based search** captures semantic user intent very well. For example: a search for "Indian dishes" will show an article about the "tandoori naan". The search is also robust even with 10K+ count of entries (when you read ten articles per day for several years).
+6. **Smart content processing** converts the webpage text to Markdown format, allowing the AI to better understand the page structure. The conversion also removes irrelevant content from the page, such as invisible elements, captcha blockers, navbars, cookie popups, redirects, etc. as well as extracts the video transcript from a YouTube video page.
+7. **AI-based tagging** allowing you to quickly view all previous articles matching specific tags.
+8. **AI-based quiz** allows you to practice active recall on articles you've previously read.
+9. **Private and secure**: fully on-device, only one external JavaScript library (`@huggingface/transformers` to run the embeddings model) that too in a separate sandboxed process with no internet access
 
 AI models used:
 
-- Chrome Built in AI model (Gemini v3Nano) for classification and summarization
-- [EmbeddingGemma model](https://huggingface.co/google/embeddinggemma-300m) (FP32 model) for generating embeddings and semantic search.
+- Chrome Built in AI model (Gemini v3Nano) for classification, summarization and quiz generation
+- [EmbeddingGemma model](https://huggingface.co/google/embeddinggemma-300m) (FP32 version) for generating embeddings and semantic search.
 
-The Chrome extension is written in vanilla JavaScript and uses IndexedDB in Chrome for efficient data storage and retrieval.
+Technologies used:
+
+- Manifest V3 Chrome extension, that works fully offline
+- IndexedDB for efficient data storage and retrieval
+- Vanilla JavaScript
 
 ## Detailed extension flow
 

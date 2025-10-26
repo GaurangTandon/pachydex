@@ -1232,8 +1232,8 @@ async function startQuiz() {
     }
     // Sort by timestamp descending (newest first)
     allSummaries.sort((a, b) => b.timestamp - a.timestamp);
-    const latest100 = allSummaries.slice(0, 100);
-    const selected = pickRandomSummaries(latest100, 2);
+    const latest100 = allSummaries.slice(0, 200);
+    const selected = pickRandomSummaries(latest100, 10);
 
     // Ask AI to create questions
     quizContainer.style.display = 'block';

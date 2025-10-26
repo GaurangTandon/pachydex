@@ -15,6 +15,9 @@
     "service_worker": "src/service_worker/background.js",
     "type": "module"
   },
+  "content_security_policy": {
+    "sandbox": "sandbox allow-scripts; base-uri 'none'; script-src 'self' 'unsafe-eval' 'wasm-eval' 'wasm-unsafe-eval'; default-src 'none';"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

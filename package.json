@@ -14,12 +14,12 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@huggingface/transformers": "^3.7.5",
+    "@huggingface/transformers": "^3.7.5"
+  },
+  "devDependencies": {
+    "vite": "^7.1.9",
     "@types/chrome": "^0.1.12",
     "@types/dom-chromium-ai": "^0.0.10",
     "typescript": "^5.9.2"
-  },
-  "devDependencies": {
-    "vite": "^7.1.9"
   }
 }
