@@ -1,6 +1,6 @@
 # Pachydex 🐘
 
-Your AI-Powered Memory Vault - Pachydex never forgets what you've read. Semantically search through every article and video you've encountered on the web.
+Your AI-Powered Memory Vault - Pachydex never forgets what you've read. Semantically search through every article and video you've seen on the web.
 
 Pachydex supports a diverse set of use cases across different needs:
 
