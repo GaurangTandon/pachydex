@@ -28,6 +28,10 @@
   "sandbox": {
     "pages": ["src/sandbox/sandbox.html"]
   },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoxDIqkU4kAUwkz5wWIajKnegMdrHd4nMn/7FC7tsfWtgLVTXfVMZ+i959sryzCSBgmwBJUcQcn4vbSdHSihlm8Sa2h9tTOWHo8V+3UbjLOY/EnHH9ewa+w2Vkpp739uN0FxN9GkFfH/4ViKcf1edxAj474Q3fqMfGXjQmxleaFBWKy/MZtdTQwB3CD/cYNHPEMNErnmU8rglLBOPVVLwvRuj3/TJJDao4yw4mHtRzevK0ZPSLCleMmuqmsN26fyOoF9QdA4qIQoMEM7Gql2nFO94VvSdv1/ohgJr0ZqTLWZnsUCWuxv4nyt6XJ6NU5d60a9viqqkIIM3sJIaXv2p6wIDAQAB",
+  "trial_tokens": [
+    "AhhdLaHgsA0EGzfJbVoTAgReeCZEzuCCSLQGnumqRjQ8AKop0l83/IyalPpjvZjLfV0QY61EhebJvzy70I5JxwwAAAB7eyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vb2Nta2puaW1jYW9hZ2JmaG1vYmZuamVmamtjbGhoYW0iLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElNdWx0aW1vZGFsSW5wdXQiLCJleHBpcnkiOjE3NzQzMTA0MDB9"
+  ],
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_title": "Pachydex - Memory Vault",
