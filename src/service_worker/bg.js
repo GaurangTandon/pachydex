@@ -62,10 +62,12 @@ async function getTabScreenshot({ windowId, tabId }) {
   return blob;
 }
 
-// default 0 in case service worker accidentally restarts
+// default 0 in case service worker restarts
 let activeFrameId = 0;
 /** @type {Object<string, { controller: AbortController, timestamp: number, url: string, resultPromise: Promise<any>, result: { success: true} | { success: false, reason: string }, hasStoredInDB: boolean, hasWaitToStore: boolean, content: string, }>} */
 let liveRequests = {};
+// @ts-ignore for debugging
+self.liveRequests = liveRequests;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'isFocused') {
@@ -368,6 +370,7 @@ export async function populateCache(tabId, windowId, tabOriginalURL) {
   }
 
   let tabNormalizedURL = getNormalizedURL(tabOriginalURL);
+  console.debug("Runner starting new on", tabId, tabNormalizedURL);
   const controller = new AbortController();
   /** @type {(typeof liveRequests)[0]} */
   const obj = {

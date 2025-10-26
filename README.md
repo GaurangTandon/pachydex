@@ -2,6 +2,16 @@
 
 **Your AI-Powered Memory Vault** - Like an elephant, Pachydex never forgets what you've read. If you read lots of articles or watch lots of videos on the internet, and want to semantically search from any past article or video, this Chrome extension is for you.
 
+**Diverse set of use cases:**
+
+1. **Students** writing a research paper can quickly find articles they've read that support your claims.
+2. **Professionals** learning new topics can quickly revisit tutorials they watched months ago.
+3. **Engineers** making architectural decisions can find that technical article comparing different approaches they researched months ago.
+4. **Personal users** making a purchasing decision can quickly check those product reviews articles they read weeks ago, or recall the name of the Indian dish they saw last week.
+5. **Writers** can research topics and find inspiration by pulling up all relevant articles they've read previously.
+
+and so on...
+
 **User facing features**
 
 1. Automatic indexing of RELEVANT content from ALL articles or videos on the web (without any user interaction)
@@ -40,4 +50,4 @@
 
 ## Future goals
 
-1. ??
+1. Stats section to show how much you've read every week or month

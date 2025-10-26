@@ -1192,3 +1192,355 @@ checkModelStatus();
 
 // For debugging
 self.userSummariesDb = userSummariesDb;
+
+// ------------------ Quiz mode implementation ------------------
+document.getElementById('takeQuizButton').addEventListener('click', startQuiz);
+
+// Fisher-Yates implementation
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function pickRandomSummaries(summaries, count = 10) {
+  const copy = summaries.slice();
+  shuffleArray(copy);
+  return copy.slice(0, Math.min(count, copy.length));
+}
+
+async function startQuiz() {
+  const btn = /** @type {HTMLButtonElement} */ (document.getElementById('takeQuizButton'));
+  btn.disabled = true;
+  const quizContainer = document.getElementById('quizContainer');
+  const summariesContainer = document.getElementById('summariesContainer');
+  try {
+    // Load summaries and pick up to 10 random from the latest 100
+    const allSummaries = await userSummariesDb.getAll();
+    if (!allSummaries || allSummaries.length === 0) {
+      alert('No summaries available to make a quiz.');
+      return;
+    }
+    // Sort by timestamp descending (newest first)
+    allSummaries.sort((a, b) => b.timestamp - a.timestamp);
+    const latest100 = allSummaries.slice(0, 100);
+    const selected = pickRandomSummaries(latest100, 2);
+
+    // Ask AI to create questions
+    quizContainer.style.display = 'block';
+    summariesContainer.style.display = 'none';
+    const quizContent = document.getElementById('quizContent');
+    quizContent.innerHTML = `<div class="searching-indicator">🧠 Generating quiz questions...</div>`;
+
+    let questions = null;
+    try {
+      questions = await generateQuestionsWithAI(selected);
+    } catch (e) {
+      console.error('AI question generation failed, falling back to local generator', e);
+      // questions = generateQuestionsLocally(selected);
+    }
+
+    if (!questions || questions.length === 0) {
+      quizContent.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Could not generate quiz questions.</div></div>`;
+      return;
+    }
+
+    runQuizUI(questions);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function generateQuestionsWithAI(summaries) {
+  if (!('LanguageModel' in self)) {
+    throw new Error('LanguageModel API not available');
+  }
+
+  // Build the user prompt: enumerate summaries with title + takeaways
+  let promptText = '';
+
+  // promptText += '\n\nSummaries:\n';
+  summaries.forEach((s, idx) => {
+    const title = s.title || new URL(s.url).hostname;
+    const takeaways = Array.isArray(s.takeaways) ? s.takeaways.join(' | ') : (s.takeaways || '');
+    promptText += `\nSummary ${idx + 1}: title: ${title} \nTakeaways: ${takeaways}\n`;
+  });
+  console.log(promptText);
+
+  const session = await LanguageModel.create({
+    initialPrompts: [
+      {
+        role: 'system',
+        content:
+          'You are a helpful quiz-generator. ' + `You will be given up to 10 article summaries. For each summary, create one multiple-choice question (3 options). Output three options, two of which are plausible but incorrect. Keep questions concise (max 30 words) and options short (max 12 words). Return a JSON array of objects in the exact format: [{"question":"...","options":["...","...", "..."],"correctIndex": 0-2] with exactly one object per provided summary in the same order.`
+      }
+    ],
+    expectedInputs: [{ type: 'text' }],
+    expectedOutputs: [{ type: 'text' }],
+  });
+
+  const response = await session.prompt(
+    [
+      {
+        role: 'user',
+        content: promptText,
+      },
+    ],
+    {
+      responseConstraint: {
+        type: 'array',
+        minItems: summaries.length,
+        maxItems: summaries.length,
+        items: {
+          type: 'object',
+          properties: {
+            question: { type: 'string', minLength: 5, maxLength: 200 },
+            options: {
+              type: 'array',
+              minItems: 3,
+              maxItems: 3,
+              items: { type: 'string', minLength: 5, maxLength: 200 },
+            },
+            // correctAnswer: { type: 'string', minLength: 1, maxLength: 200 }
+            correctIndex: { type: 'integer', minimum: 0, maximum: 2 },
+            // source: { type: 'string' },
+          },
+          required: ['question', 'options', 'correctIndex'],
+          additionalProperties: false,
+        },
+      },
+    }
+  );
+
+  // session may be a LanguageModel; ensure to destroy if possible
+  try {
+    if (session && session.destroy) session.destroy();
+  } catch (e) { }
+
+  // response should be JSON text or already parsed
+  let parsed = null;
+  try {
+    parsed = JSON.parse(response);
+  } catch (e) {
+    // Try to extract JSON from text
+    const text = typeof response === 'string' ? response : JSON.stringify(response);
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      parsed = JSON.parse(jsonMatch[0]);
+    } else {
+      throw e;
+    }
+  }
+  for (const item of parsed) {
+    // item.options.push(item.correctAnswer);
+    item.correctAnswer = item.options[item.correctIndex];
+    shuffleArray(item.options)
+    item.correctIndex = item.options.indexOf(item.correctAnswer);
+  }
+
+  return parsed;
+}
+
+// function generateQuestionsLocally(summaries) {
+//   // Simple fallback: use the first takeaway as correct answer and pull distractors from other summaries
+//   const questions = summaries.map((s, idx) => {
+//     const question = `Which of the following is a key takeaway from "${(s.title || '').slice(0, 60)}"?`;
+//     const correct = (s.takeaways && s.takeaways[0]) || 'Key point';
+//     // pick two distractors from others
+//     const otherTakeaways = summaries
+//       .map((x) => (x.takeaways && x.takeaways[0]) || '')
+//       .filter((t, i) => i !== idx && t && t !== correct);
+//     shuffleArray(otherTakeaways);
+//     const distract1 = otherTakeaways[0] || 'Some different point';
+//     const distract2 = otherTakeaways[1] || 'Another different point';
+//     const options = shuffleOptions([correct, distract1, distract2]);
+//     const correctIndex = options.indexOf(correct);
+//     return { question, options, correctIndex, source: s.timestamp };
+//   });
+//   return questions;
+// }
+
+// function shuffleOptions(arr) {
+//   const copy = arr.slice();
+//   shuffleArray(copy);
+//   return copy;
+// }
+
+function runQuizUI(questions) {
+  const quizContent = document.getElementById('quizContent');
+  let current = 0;
+  const answers = new Array(questions.length).fill(null);
+
+  function render() {
+    const q = questions[current];
+    quizContent.innerHTML = `
+      <div class="search-results-header">
+        <div class="search-results-title">Quiz ${current + 1}/${questions.length}</div>
+        <button class="clear-search" id="quitQuiz">Quit Quiz</button>
+      </div>
+      <div class="quiz-card">
+        <div class="card-inner" id="cardInner">
+          <div class="card-front">
+            <div style="margin-bottom: 12px; font-weight:600">${escapeHtml(q.question)}</div>
+            <form id="quizForm">
+              ${q.options
+        .map((opt, i) => `
+                <label data-idx="${i}" class="quiz-option" style="display:block; margin-bottom:10px; padding:8px; border-radius:8px; display: flex; gap: 10px; align-items: center;">
+                  <input type="radio" name="choice" value="${i}" /> ${escapeHtml(opt)}
+                </label>
+              `)
+        .join('')}
+              <div style="margin-top:12px; display:flex; gap:8px;">
+                <button type="submit" class="data-button" id="submitAnswer">Submit</button>
+                <button type="button" class="data-button" id="skipAnswer">Skip</button>
+              </div>
+            </form>
+          </div>
+          <div class="card-back" id="cardBack">
+            <div style="font-weight:600">Answer</div>
+            <div id="backContent" style="margin-top:8px"></div>
+            <div style="margin-top:12px; display:flex; gap:8px;">
+              <button class="data-button" id="nextButton">Next</button>
+              <button class="data-button" id="quitAfter">Quit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Quit button on header
+    document.getElementById('quitQuiz').addEventListener('click', () => {
+      if (confirm('Quit quiz and return to summaries?')) {
+        endQuizEarly();
+      }
+    });
+
+    // Skip will simply advance without flipping
+    document.getElementById('skipAnswer').addEventListener('click', () => {
+      answers[current] = null;
+      nextQuestion();
+    });
+
+    const form = /** @type {HTMLFormElement} */ (document.getElementById('quizForm'));
+    const cardInner = /** @type {HTMLElement} */ (document.getElementById('cardInner'));
+    const cardBack = /** @type {HTMLElement} */ (document.getElementById('cardBack'));
+    const backContent = /** @type {HTMLElement} */ (document.getElementById('backContent'));
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const choiceVal = formData.get('choice');
+      if (choiceVal === null) {
+        alert('Please select an option or Skip.');
+        return;
+      }
+      const choice = parseInt(String(choiceVal), 10);
+      answers[current] = choice;
+
+      // Disable inputs
+      const inputs = /** @type {NodeListOf<HTMLInputElement>} */ (form.querySelectorAll('input[name="choice"]'));
+      inputs.forEach((inp) => (inp.disabled = true));
+
+      // Highlight correct and wrong on front
+      const correctIdx = q.correctIndex;
+      const labels = form.querySelectorAll('label.quiz-option');
+      labels.forEach((lbl) => {
+        const idx = Number(lbl.getAttribute('data-idx'));
+        lbl.classList.remove('option-correct', 'option-wrong');
+        if (idx === correctIdx) lbl.classList.add('option-correct');
+        if (idx === choice && idx !== correctIdx) lbl.classList.add('option-wrong');
+      });
+
+      // Fill back content with correct answer and user's answer
+      const userAnswerText = q.options[choice] || '<em>Skipped</em>';
+      const correctAnswerText = q.options[correctIdx];
+      const isCorrect = choice === correctIdx;
+      backContent.innerHTML = `
+        <div>Correct answer: <strong>${escapeHtml(correctAnswerText)}</strong></div>
+        <div style="margin-top:8px">Your answer: ${isCorrect ? '✅ ' : '❌ '}${escapeHtml(userAnswerText)}</div>
+      `;
+
+      // Flip card to reveal back
+      setTimeout(() => {
+        cardInner.classList.add('flipped');
+      }, 50);
+
+      // Next button click
+      const nextBtn = /** @type {HTMLButtonElement} */ (document.getElementById('nextButton'));
+      nextBtn.addEventListener('click', () => {
+        // remove flip immediately then advance
+        cardInner.classList.remove('flipped');
+        nextQuestion();
+      });
+
+      // Quit after viewing
+      document.getElementById('quitAfter').addEventListener('click', () => {
+        endQuizEarly();
+      });
+    });
+  }
+
+  function nextQuestion() {
+    current += 1;
+    if (current >= questions.length) {
+      showResults(questions, answers);
+    } else {
+      render();
+    }
+  }
+
+  function endQuizEarly() {
+    // Hide quiz and show summaries
+    document.getElementById('quizContainer').style.display = 'none';
+    document.getElementById('summariesContainer').style.display = 'block';
+    document.getElementById('quizContent').innerHTML = '';
+  }
+
+  // Start
+  render();
+}
+
+function showResults(questions, answers) {
+  const quizContent = document.getElementById('quizContent');
+  let score = 0;
+  const rows = questions.map((q, i) => {
+    const user = answers[i];
+    const correct = q.correctIndex;
+    const isCorrect = user === correct;
+    if (isCorrect) score += 1;
+    return `
+      <div class="summary-card" style="margin-bottom:8px;">
+        <div style="font-weight:600">Q${i + 1}: ${escapeHtml(q.question)}</div>
+        <div style="margin-top:8px;">Correct answer: <strong>${escapeHtml(q.options[correct])}</strong></div>
+        <div>Your answer: ${user === null || user === undefined ? '<em>Skipped</em>' : escapeHtml(q.options[user])} ${isCorrect ? '✅' : '❌'}</div>
+      </div>
+    `;
+  });
+
+  quizContent.innerHTML = `
+    <div class="search-results-header">
+      <div class="search-results-title">Quiz Complete — Score: ${score}/${questions.length}</div>
+      <button class="clear-search" id="reviewBack">Back to Summaries</button>
+    </div>
+    <div style="margin-top:12px">${rows.join('')}</div>
+  `;
+
+  document.getElementById('reviewBack').addEventListener('click', () => {
+    document.getElementById('quizContainer').style.display = 'none';
+    document.getElementById('summariesContainer').style.display = 'block';
+    document.getElementById('quizContent').innerHTML = '';
+  });
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// ----------------------------------------------------------------
