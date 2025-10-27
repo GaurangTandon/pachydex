@@ -12,14 +12,6 @@ async function setBlacklist(blacklist) {
   await chrome.storage.local.set({ blacklist });
 }
 
-async function getLanguage() {
-  return (await chrome.runtime.sendMessage({ type: "getLanguage" })).language;
-}
-
-async function setLanguage(language) {
-  await chrome.storage.local.set({ language });
-}
-
 function getOrigin(url) {
   try {
     return new URL(url).origin;
@@ -28,42 +20,90 @@ function getOrigin(url) {
   }
 }
 
+// Status mapping from extension badge to UI display
+const STATUS_MAP = {
+  '⏳': {
+    icon: '⏱️',
+    text: 'Waiting 30 seconds before saving...',
+    state: 'status-waiting'
+  },
+  '✓': {
+    icon: '✅',
+    text: 'Page saved successfully',
+    state: 'status-success'
+  },
+  '⟳': {
+    icon: '⏳',
+    text: 'Saving page...',
+    state: 'status-saving'
+  },
+  'x': {
+    icon: '🚫',
+    text: '',
+    state: 'status-error'
+  },
+};
+
+function updateStatus(statusText, statusTitle) {
+  const statusContent = document.getElementById('statusContent');
+  const statusIcon = document.getElementById('statusIcon');
+  const statusTextEl = document.getElementById('statusText');
+
+  const status = STATUS_MAP[statusText] || {
+    icon: '️🏠',
+    text: 'This is your Pachydex homepage',
+    state: 'status-idle'
+  };
+  if (statusTitle) {
+    status.text = statusTitle;
+  }
+
+  statusIcon.textContent = status.icon;
+  statusTextEl.textContent = status.text;
+
+  // Remove all status classes
+  statusContent.className = 'status-content';
+  // Add the appropriate status class
+  statusContent.classList.add(status.state);
+}
+
 async function updateUI() {
   const tab = await getCurrentTab();
   const origin = getOrigin(tab.url);
 
   if (!origin) {
-    document.getElementById("live-status").textContent = '';
-    document.getElementById("status").textContent = "Cannot manage this page";
-    document.getElementById("toggleButton").style.display = "none";
+    updateStatus('Cannot manage this page');
+    document.getElementById("settingsSection").classList.add("hidden");
     return;
   }
 
-  document.getElementById('live-status').textContent = (await chrome.action.getTitle({ tabId: tab.id }));
+  // Get and display current status from badge
+  const badgeText = (await chrome.action.getBadgeText({ tabId: tab.id }))?.[0];
+  const badgeTitle = (await chrome.action.getTitle({ tabId: tab.id }));
+  updateStatus(badgeText, badgeTitle);
 
+  // Update settings section
   const blacklist = await getBlacklist();
   const isBlacklisted = blacklist.includes(origin);
 
-  const statusEl = document.getElementById("status");
-  const buttonEl = document.getElementById("toggleButton");
-  const urlEl = document.getElementById("url");
+  const settingsSection = document.getElementById("settingsSection");
+  const originLabel = document.getElementById("settingsOrigin");
+  const toggleButton = document.getElementById("toggleButton");
+
+  settingsSection.classList.remove("hidden");
+
+  // Shorten origin display if too long
+  const displayOrigin = origin.length > 30 ? origin.substring(0, 27) + '...' : origin;
+  originLabel.textContent = displayOrigin;
+  originLabel.title = origin; // Show full origin on hover
 
   if (isBlacklisted) {
-    statusEl.textContent = "🚫 Indexing is disabled on this origin";
-    statusEl.className = "status disabled";
-    buttonEl.textContent = "Enable indexing on " + origin;
-    buttonEl.className = "enable";
+    toggleButton.textContent = "Enable indexing";
+    toggleButton.className = "toggle-button disabled";
   } else {
-    statusEl.textContent = "✓ Indexing is enabled on this origin";
-    statusEl.className = "status enabled";
-    buttonEl.textContent = "Disable indexing on " + origin;
-    buttonEl.className = "disable";
+    toggleButton.textContent = "Disable indexing";
+    toggleButton.className = "toggle-button enabled";
   }
-
-  // urlEl.textContent = "Origin: " + origin;
-
-  const language = await getLanguage();
-  document.getElementById("languageSelect").value = language;
 }
 
 async function toggleBlacklist() {
@@ -91,15 +131,10 @@ async function toggleBlacklist() {
   });
 }
 
+// Event listeners
 document
   .getElementById("toggleButton")
   .addEventListener("click", toggleBlacklist);
-
-document
-  .getElementById("languageSelect")
-  .addEventListener("change", async (e) => {
-    await setLanguage(e.target.value);
-  });
 
 document
   .getElementById("summariesButton")
@@ -107,4 +142,5 @@ document
     chrome.tabs.create({ url: chrome.runtime.getURL("src/summary_view/index.html") });
   });
 
+// Initialize UI
 updateUI();

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pachydex - Your Memory Vault 🐘</title>
+    <title>Pachydex - Your Memory Vault</title>
     <!-- Material Design Icons -->
     <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
@@ -90,6 +90,10 @@
           );
         pointer-events: none;
         z-index: 0;
+      }
+
+      .logo {
+        width: 64px;
       }
 
       .container {
@@ -1111,7 +1115,10 @@
   <body>
     <div class="container">
       <div class="header-container">
-        <h1>🐘 Pachydex</h1>
+        <h1>
+          <img src="../../icons/icon.svg" alt="Pachydex" class="logo" />
+          Pachydex
+        </h1>
         <div class="header-stats">
           <div class="stat-item">
             <div class="stat-number" id="totalCount">0</div>

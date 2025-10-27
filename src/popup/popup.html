@@ -4,129 +4,241 @@
     <meta charset="UTF-8" />
     <style>
       body {
-        width: 350px;
-        padding: 15px;
-        font-family: system-ui, -apple-system, sans-serif;
+        width: 360px;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         margin: 0;
+        background: #fafafa;
       }
-      .status {
-        padding: 10px;
-        border-radius: 4px;
-        font-size: 14px;
-        height: 45px;
+
+      .container {
+        padding: 20px;
+      }
+
+      /* Header Section with Icon and CTA */
+      .header {
         display: flex;
         align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
       }
-      #status-container {
-        height: 90px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+
+      .logo-container {
+        flex-shrink: 0;
       }
-      .status.enabled {
-        background-color: #e8f5e9;
-        color: #2e7d32;
+
+      .logo {
+        width: 56px;
+        height: 56px;
+        display: block;
       }
-      .status.disabled {
-        background-color: #ffebee;
-        color: #c62828;
-      }
-      button {
-        padding: 10px;
-        border: none;
-        border-radius: 4px;
-        font-size: 14px;
-        cursor: pointer;
-        font-weight: 500;
-      }
-      button.summaries {
-        width: 100%;
+
+      .cta-button {
+        flex: 1;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        font-size: 16px;
-        padding: 14px;
+        font-size: 15px;
+        padding: 14px 18px;
         font-weight: 600;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        transition: all 0.3s;
-        margin-bottom: 10px;
-      }
-      button.summaries:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
-        opacity: 1;
-      }
-      #toggleButton {
-        zoom: 0.9;
-        text-align: left;
-        box-sizing: border-box;
-        transition: 0.2s text-decoration ease;
-        background-color: transparent;
-        color: #666;
-      }
-      #toggleButton:hover {
-        text-decoration: underline;
-      }
-      button.disable:hover {
-        color: #333;
-      }
-      button:hover {
-        opacity: 0.9;
-      }
-      .url {
-        font-size: 12px;
-        color: #666;
-        margin-top: 10px;
-        word-break: break-all;
-      }
-      .language-selector {
-        margin-top: 10px;
-        padding-top: 15px;
-        border-top: 1px solid #e0e0e0;
-      }
-      .language-selector label {
-        display: block;
-        font-size: 12px;
-        font-weight: 500;
-        color: #333;
-        margin-bottom: 5px;
-      }
-      .language-selector select {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 13px;
-        background-color: white;
+        border: none;
+        border-radius: 12px;
         cursor: pointer;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        transition: all 0.2s ease;
+        white-space: nowrap;
       }
-      .language-selector select:focus {
-        outline: none;
-        border-color: #4caf50;
+
+      .cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
       }
-      #live-status {
-        margin-top: 5px;
-        margin-bottom: 10px;
+
+      .cta-button:active {
+        transform: translateY(0);
+      }
+
+      /* Status Section */
+      .status-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e8e8e8;
+      }
+
+      .status-header {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #999;
+        margin-bottom: 12px;
+      }
+
+      .status-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .status-icon {
+        font-size: 20px;
+        flex-shrink: 0;
+      }
+
+      .status-text {
+        color: #333;
+        font-weight: 500;
+      }
+
+      /* Status states */
+      .status-idle .status-text {
+        color: #666;
+      }
+
+      .status-waiting .status-icon {
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      .status-saving .status-icon {
+        animation: spin 1s linear infinite;
+      }
+
+      .status-success .status-text {
+        color: #2e7d32;
+      }
+
+      .status-error .status-text {
+        color: #c62828;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      /* Settings Section */
+      .settings-section {
+        background: white;
+        border-radius: 12px;
+        padding: 14px 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e8e8e8;
+      }
+
+      .settings-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .settings-label {
+        font-size: 13px;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .settings-label .icon {
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+
+      .settings-label .text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .toggle-button {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        font-weight: 500;
+        background: white;
+        color: #666;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .toggle-button:hover {
+        background: #f5f5f5;
+        border-color: #999;
+        color: #333;
+      }
+
+      .toggle-button.enabled {
+        color: #2e7d32;
+        border-color: #2e7d32;
+      }
+
+      .toggle-button.enabled:hover {
+        background: #e8f5e9;
+      }
+
+      .toggle-button.disabled {
+        color: #c62828;
+        border-color: #c62828;
+      }
+
+      .toggle-button.disabled:hover {
+        background: #ffebee;
+      }
+
+      /* Hidden state */
+      .hidden {
+        display: none !important;
       }
     </style>
   </head>
   <body>
-    <button id="summariesButton" class="summaries">🐘 View Pachydex</button>
-    <div id="live-status"></div>
-    <div id="status-container">
-      <div id="status" class="status"></div>
-      <button id="toggleButton"></button>
+    <div class="container">
+      <!-- Header with Icon and CTA -->
+      <div class="header">
+        <div class="logo-container">
+          <img src="../../icons/icon.svg" alt="Pachydex" class="logo">
+        </div>
+        <button id="summariesButton" class="cta-button">
+          View Pachydex
+        </button>
+      </div>
+
+      <!-- Status Section -->
+      <div class="status-card">
+        <div class="status-header">Current Page</div>
+        <div id="statusContent" class="status-content status-idle">
+          <span id="statusIcon" class="status-icon">⏸️</span>
+          <span id="statusText" class="status-text">No activity</span>
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <div id="settingsSection" class="settings-section">
+        <div class="settings-row">
+          <div class="settings-label">
+            <span class="icon">⚙️</span>
+            <span id="settingsOrigin" class="text">this origin</span>
+          </div>
+          <button id="toggleButton" class="toggle-button">Toggle</button>
+        </div>
+      </div>
     </div>
-    <!-- <div id="url" class="url"></div> -->
-    <!-- 
-    Remove language picker because it doesn't seem to work very well
-    <div class="language-selector">
-      <label for="languageSelect">Language:</label>
-      <select id="languageSelect">
-        <option value="en">English</option>
-        <option value="es">Español</option>
-        <option value="ja">日本語</option>
-      </select>
-    </div> -->
+
     <script src="popup.js"></script>
   </body>
 </html>
