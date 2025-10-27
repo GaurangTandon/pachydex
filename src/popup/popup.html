@@ -6,7 +6,8 @@
       body {
         width: 360px;
         padding: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
         margin: 0;
         background: #fafafa;
       }
@@ -112,17 +113,26 @@
       }
 
       .status-error .status-text {
-        color: #c62828;
+        /* color: #c62828; */
       }
 
       @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
       }
 
       @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
       }
 
       /* Settings Section */
@@ -211,11 +221,9 @@
       <!-- Header with Icon and CTA -->
       <div class="header">
         <div class="logo-container">
-          <img src="../../icons/icon.svg" alt="Pachydex" class="logo">
+          <img src="../../icons/icon.svg" alt="Pachydex" class="logo" />
         </div>
-        <button id="summariesButton" class="cta-button">
-          View Pachydex
-        </button>
+        <button id="summariesButton" class="cta-button">View Pachydex</button>
       </div>
 
       <!-- Status Section -->
