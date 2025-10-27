@@ -355,11 +355,14 @@ const QUERY_PREFIX = "task: search result | query: ";
  * Search summaries using embeddings
  * @param {string} searchQuery - The search query
  * @param {Array} summaries - Array of summaries with embeddings
- * @returns {Promise<Array>} - Ranked search results
+ * @returns {Promise<Array|string>} - Ranked search results
  */
 async function searchWithEmbeddings(searchQuery, summaries) {
   // Generate embedding for the search query
   const queryEmbeddingResult = await getBatchedEmbeddingsForDocuments([QUERY_PREFIX + searchQuery]);
+  if (queryEmbeddingResult.error) {
+    return queryEmbeddingResult.error;
+  }
 
   const queryEmbedding = queryEmbeddingResult.data;
 
@@ -473,6 +476,12 @@ async function handleSearch() {
 
     // Use embedding-based search
     const results = await searchWithEmbeddings(searchQuery, allSummaries);
+    if (typeof results === 'string') {
+      if (results.toLowerCase().includes('out of bounds')) {
+        throw 'When using the extension from source code, please install Git LFS to ensure the model file is cloned as well.'
+      }
+      throw new Error(results);
+    }
 
     if (results.length === 0) {
       container.innerHTML = `
@@ -494,11 +503,13 @@ async function handleSearch() {
     }
   } catch (error) {
     console.error("Search error:", error);
+    const errorString = error.toString();
     const container = document.getElementById("summariesContainer");
     container.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon">⚠️</div>
         <div class="empty-state-text">Error searching summaries. Please try again.</div>
+        <div class="empty-state-text empty-state-text-small">${errorString}</div>
       </div>
     `;
   } finally {

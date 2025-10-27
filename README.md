@@ -103,3 +103,4 @@ To install locally, you can:
 1. Stats section to show how much you've read every week or month
 2. Read in-detail content of PDFs and Google Docs
 3. Improve Quiz questions to support free text answers in addition to choice-based questions
+4. Time required to be spent on a page should be proportional to the length of the content on the page (currently fixed to 10 seconds)

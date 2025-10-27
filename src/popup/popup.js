@@ -1,3 +1,5 @@
+import { userSummariesDb } from "../utils/indexeddb.js";
+
 async function getCurrentTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   return tab;
@@ -44,14 +46,15 @@ const STATUS_MAP = {
   },
 };
 
-function updateStatus(statusText, statusTitle) {
+async function updateStatus(statusText, statusTitle, tabUrl) {
+  const isHomePage = tabUrl.includes('chrome-extension://ocmkjnimcaoagbfhmobfnjefjkclhham/src/summary_view/index.html');
   const statusContent = document.getElementById('statusContent');
   const statusIcon = document.getElementById('statusIcon');
   const statusTextEl = document.getElementById('statusText');
 
   const status = STATUS_MAP[statusText] || {
-    icon: '️🏠',
-    text: 'This is your Pachydex homepage',
+    icon: isHomePage ? '️🏠' : '⏸️',
+    text: isHomePage ? 'This is your Pachydex homepage' : 'Unknown page',
     state: 'status-idle'
   };
   if (statusTitle) {
@@ -60,6 +63,42 @@ function updateStatus(statusText, statusTitle) {
 
   statusIcon.textContent = status.icon;
   statusTextEl.textContent = status.text;
+
+  // Clear any existing summary display
+  const existingSummary = document.querySelector('.summary-display');
+  if (existingSummary) {
+    existingSummary.remove();
+  }
+
+  if (statusText === '✓') {
+    const summary = (await (userSummariesDb.getAll())).find(x => x.url === tabUrl);
+    if (summary) {
+      // Create tags HTML
+      const tagsHtml = summary.tags
+        .map(tag => `<span class="summary-tag">${tag.replace(/_/g, ' ')}</span>`)
+        .join('');
+
+      // Create takeaways HTML
+      const takeawaysHtml = summary.takeaways
+        .map(takeaway => `<div class="summary-takeaway-item">${takeaway}</div>`)
+        .join('');
+
+      // Create summary display element
+      const summaryDisplay = document.createElement('div');
+      summaryDisplay.className = 'summary-display';
+      summaryDisplay.innerHTML = `
+        ${summary.tags.length > 0 ? `<div class="summary-tags">${tagsHtml}</div>` : ''}
+        <div class="summary-takeaways">
+          <div class="summary-takeaways-title">Key Takeaways</div>
+          ${takeawaysHtml}
+        </div>
+      `;
+
+      // Insert after the status card
+      const statusCard = document.querySelector('.status-card');
+      statusCard.parentNode.insertBefore(summaryDisplay, statusCard.nextSibling);
+    }
+  }
 
   // Remove all status classes
   statusContent.className = 'status-content';
@@ -72,7 +111,7 @@ async function updateUI() {
   const origin = getOrigin(tab.url);
 
   if (!origin) {
-    updateStatus('Cannot manage this page');
+    await updateStatus('Cannot manage this page');
     document.getElementById("settingsSection").classList.add("hidden");
     return;
   }
@@ -80,7 +119,7 @@ async function updateUI() {
   // Get and display current status from badge
   const badgeText = (await chrome.action.getBadgeText({ tabId: tab.id }))?.[0];
   const badgeTitle = (await chrome.action.getTitle({ tabId: tab.id }));
-  updateStatus(badgeText, badgeTitle);
+  await updateStatus(badgeText, badgeTitle, tab.url);
 
   // Update settings section
   const blacklist = await getBlacklist();
@@ -93,7 +132,7 @@ async function updateUI() {
   settingsSection.classList.remove("hidden");
 
   // Shorten origin display if too long
-  const displayOrigin = origin.length > 30 ? origin.substring(0, 27) + '...' : origin;
+  const displayOrigin = origin; // origin.length > 30 ? origin.substring(0, 27) + '...' : origin;
   originLabel.textContent = displayOrigin;
   originLabel.title = origin; // Show full origin on hover
 

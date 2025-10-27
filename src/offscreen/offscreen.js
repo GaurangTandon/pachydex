@@ -94,6 +94,10 @@ async function processBatch(summaries) {
 
     // Generate embeddings
     const embeddings = await getBatchedEmbeddingsForSummaries(summaries);
+    if (embeddings.error) {
+      // Local model failed to load
+      return;
+    }
 
     const embeddingSize = embeddings.dims[1]; // Size of each embedding
     const embeddingsData = embeddings.data;

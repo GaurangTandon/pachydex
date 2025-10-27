@@ -36,7 +36,7 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 });
 
-/** @type {{ timeout: NodeJS.Timeout, tabId: number, url: string, }} */
+/** @type {{ timeout: NodeJS.Timeout, tabId: number, url: string, endTime: number, }} */
 let previousWait = null;
 function getOrigin(url) {
   try {
@@ -65,14 +65,13 @@ async function setBadgeWithWaitCheck(tabId, normalizedUrl, result) {
   }
 }
 
-// TODO: 30 seconds
-const MIN_TIME_REQUIRED_MS = 30_000;
+const MIN_TIME_REQUIRED_MS = 10_000;
 const getActiveTab = async () =>
   (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
 async function runner() {
   const tab = await getActiveTab();
   const data = { tabId: tab?.id, windowId: tab?.windowId, url: tab?.url, title: tab?.title, };
-  const WAIT_TEXT = 'Waiting for you to spend over thirty seconds on this page, before we save this page.';
+  // const WAIT_TEXT = 'Waiting for you to spend over thirty seconds on this page, before we save this page.';
   console.debug('Runner data', data);
   if (!data.tabId) {
     // show failed badge info - don't set any badge info because tab id is missing
@@ -92,7 +91,7 @@ async function runner() {
   if (previousWait?.timeout) {
     if (data.tabId === previousWait.tabId && previousWait.url === tabNormalizedURL) {
       console.debug('Runner update ignored as already waiting on same tab');
-      setTitleTextAndColor(data.tabId, 'waiting', WAIT_TEXT);
+      setTitleTextAndColor(data.tabId, 'waiting', previousWait.endTime.toString());
       // we got an event elsewhere while we're still waiting for the same active tab
       // ignore the event
       return;
@@ -117,7 +116,7 @@ async function runner() {
   const origin = getOrigin(data.url);
   if (blacklist.includes(origin)) {
     console.debug("Runner exit as origin is in blacklist", blacklist, origin)
-    setTitleTextAndColor(data.tabId, "fail", 'you have disabled predictions on this webpage');
+    setTitleTextAndColor(data.tabId, "fail", 'you have disabled indexing on this webpage');
     return;
   }
   const cacheWrittenResult = getCacheWrittenToDB(data.tabId, data.url);
@@ -155,16 +154,30 @@ async function runner() {
     // some strange problem if failed again
   } else {
     console.debug("Runner waiting for timeout", timeRemaining);
+    let endTime = Date.now() + timeRemaining;
+    const myInterval = setInterval(() => {
+      if (previousWait?.timeout === myInterval) {
+        if (Date.now() >= endTime) {
+          clearInterval(previousWait.timeout);
+          console.debug('Timeout finished');
+          previousWait = null;
+          runner();
+        } else {
+          // Update badge text
+          setTitleTextAndColor(data.tabId, 'waiting', previousWait.endTime.toString());
+        }
+      } else {
+        // won't do anything if already cleared
+        clearInterval(myInterval);
+      }
+    }, 1000);
     previousWait = {
       tabId: data.tabId,
-      timeout: setTimeout(() => {
-        console.debug('Timeout finished');
-        previousWait = null;
-        runner();
-      }, timeRemaining),
-      url: tabNormalizedURL
+      timeout: myInterval,
+      url: tabNormalizedURL,
+      endTime
     }
-    setTitleTextAndColor(data.tabId, 'waiting', WAIT_TEXT);
+    setTitleTextAndColor(data.tabId, 'waiting', previousWait.endTime.toString());
     populateCache(data.tabId, data.windowId, data.url);
   }
 }

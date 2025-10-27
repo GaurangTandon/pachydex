@@ -92,8 +92,10 @@ export function setTitleTextAndColor(tabId, status, title) {
     text = "⟳";
     color = "orange";
   } else if (status === 'waiting') {
+    const seconds = Math.max(0, Math.floor((+title - Date.now()) / 1000));
     text = '⏳';
     color = [0, 0, 0, 0];
+    title = 'Waiting for you to spend over ' + seconds + ' seconds on this page, before we save this page.'
   } else if (status === 'success') {
     text = "✓";
     color = "green";

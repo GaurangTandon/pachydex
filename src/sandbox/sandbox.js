@@ -18,6 +18,9 @@ async function getModel(modelPath) {
     console.log('Time taken to get model', performance.now() - start)
     globalModel = model;
     return model;
+  }).catch(e => {
+    globalModel = e;
+    return e;
   });
   return globalModelPromise;
 }
@@ -30,6 +33,13 @@ async function getModel(modelPath) {
  */
 async function getBatchedEmbeddings(modelPath, documents) {
   await getModel(modelPath);
+  if (typeof globalModel === 'string') {
+    const error = globalModel;
+    // reset to try again
+    globalModelPromise = null;
+    globalModel = null;
+    return { error, };
+  }
   const start = performance.now();
   const embeddings = await globalModel(documents, {
     pooling: "mean",
