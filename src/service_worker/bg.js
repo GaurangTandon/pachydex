@@ -331,7 +331,19 @@ async function getSecondaryMatchingLiveRequest(tabId, frameId, tabOriginalURL) {
       const documentContent = await getTextContentFromPage(tabId, frameId);
       if (documentContent) {
         console.debug('Checking document content difference', getCleanedString(documentContent[0]), '\n----\n', getCleanedString(previousContent));
-        if (getCleanedString(documentContent[0]) === getCleanedString(previousContent)) {
+        // Google Maps will occassionally update the hotel prices which can cause a diff
+        // Safer to look at a percentage diff
+        let diffCount = 0;
+        let a = getCleanedString(documentContent[0]);
+        let b = getCleanedString(previousContent);
+        let count = Math.min(a.length, b.length);
+        for (let i = 0; i < count; i++) {
+          if (a[i] !== b[i]) {
+            diffCount++;
+          }
+        }
+        diffCount += Math.abs(a.length - b.length);
+        if (diffCount / count <= 0.01) {
           // Same, update the live URL and call it a day
           liveRequests[key].url = getNormalizedURL(tabOriginalURL);
           return true;
