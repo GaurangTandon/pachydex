@@ -66,9 +66,10 @@
         background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
         background-attachment: fixed;
         min-height: 100vh;
-        padding: 32px 24px;
+        padding: 0;
         letter-spacing: -0.01em;
         position: relative;
+        display: flex;
       }
 
       body::before {
@@ -97,13 +98,66 @@
       }
 
       .container {
-        max-width: 1280px;
-        margin: 0 auto;
+        width: 100%;
+        height: 100vh;
         position: relative;
         z-index: 1;
-        max-height: calc(100vh - 64px);
+        display: flex;
+        flex-direction: row;
+        gap: 0;
+      }
+
+      .sidebar {
+        width: 250px;
+        min-width: 250px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 28px 24px;
+        margin: 28px 0 28px 24px;
         display: flex;
         flex-direction: column;
+        gap: 24px;
+        overflow-y: auto;
+        box-shadow: var(--md-elevation-3);
+      }
+
+      .sidebar::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 10px;
+      }
+
+      .sidebar::-webkit-scrollbar-thumb {
+        background: linear-gradient(
+          180deg,
+          var(--md-primary),
+          var(--md-secondary)
+        );
+        border-radius: 10px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+      }
+
+      .sidebar::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(
+          180deg,
+          var(--md-primary-hover),
+          var(--md-secondary)
+        );
+        background-clip: padding-box;
+      }
+
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 28px 24px;
+        overflow: hidden;
       }
 
       h1 {
@@ -114,51 +168,39 @@
       }
 
       .header-container {
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px) saturate(180%);
-        border: 1px solid var(--glass-border);
-        border-radius: 24px;
-        padding: 28px 36px;
-        margin-bottom: 28px;
-        box-shadow: var(--md-elevation-3);
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 36px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .header-container:hover {
-        box-shadow: var(--md-elevation-4);
-        transform: translateY(-2px);
+        flex-direction: column;
+        gap: 24px;
       }
 
       .header-container h1 {
         margin: 0;
         color: var(--md-on-surface);
-        font-size: 2rem;
+        font-size: 1.75rem;
         font-weight: 600;
-        white-space: nowrap;
         letter-spacing: -0.02em;
         display: flex;
         align-items: center;
         gap: 12px;
+        justify-content: center;
+        padding-bottom: 16px;
+        border-bottom: 2px solid var(--md-outline);
       }
 
       .header-stats {
         display: flex;
-        gap: 2rem;
-        flex: 1;
-        justify-content: center;
+        flex-direction: column;
+        gap: 12px;
       }
 
       .data-controls {
         display: flex;
-        gap: 0.75rem;
+        flex-direction: column;
+        gap: 10px;
       }
 
       .data-button {
-        padding: 12px 24px;
+        padding: 14px 20px;
         background: var(--md-primary);
         color: var(--md-on-primary);
         border: none;
@@ -172,19 +214,21 @@
         box-shadow: var(--md-elevation-2);
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
         position: relative;
         overflow: hidden;
+        width: 100%;
       }
 
       .data-button:hover {
         background: var(--md-primary-hover);
         box-shadow: var(--md-elevation-3);
-        transform: translateY(-2px);
+        transform: translateY(-4px);
       }
 
       .data-button:active {
-        transform: translateY(0);
+        transform: translateY(-2px);
         box-shadow: var(--md-elevation-1);
       }
 
@@ -212,14 +256,15 @@
 
       .model-status-banner {
         background: linear-gradient(135deg, #fff9f0 0%, #fff4e6 100%);
-        border-radius: 28px;
-        padding: 40px;
-        margin-bottom: 24px;
+        border-radius: 24px;
+        padding: 32px;
+        margin-bottom: 20px;
         box-shadow: var(--md-elevation-3);
         border: 3px solid #ffb74d;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
+        flex-shrink: 0;
       }
 
       .model-status-banner::before {
@@ -442,15 +487,15 @@
       .stat-item {
         text-align: center;
         color: var(--md-on-surface);
-        padding: 12px 20px;
+        padding: 16px 20px;
         background: var(--md-surface-variant);
-        border-radius: 16px;
+        border-radius: 12px;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .stat-item:hover {
         background: var(--md-primary-container);
-        transform: scale(1.05);
+        transform: translateY(-4px);
       }
 
       .stat-number {
@@ -485,6 +530,8 @@
         padding: 28px;
         overflow-y: auto;
         box-shadow: var(--md-elevation-3);
+        flex: 1;
+        min-height: 0;
       }
 
       .summaries-container::-webkit-scrollbar {
@@ -543,7 +590,7 @@
       }
 
       .summary-card:hover {
-        transform: translateY(-6px);
+        transform: translateY(-8px);
         box-shadow: var(--md-elevation-4);
         border-color: var(--md-primary);
       }
@@ -598,11 +645,11 @@
         background: var(--md-error-container);
         border-color: var(--md-error);
         color: var(--md-error);
-        transform: scale(1.1);
+        transform: translateY(-3px);
       }
 
       .delete-button:active {
-        transform: scale(0.95);
+        transform: translateY(-1px);
       }
 
       .summary-url {
@@ -671,11 +718,11 @@
         background: var(--md-primary);
         color: var(--md-on-primary);
         box-shadow: var(--md-elevation-2);
-        transform: translateY(-2px);
+        transform: translateY(-3px);
       }
 
       .tag:active {
-        transform: translateY(0);
+        transform: translateY(-1px);
         box-shadow: var(--md-elevation-1);
       }
 
@@ -753,22 +800,21 @@
         -webkit-backdrop-filter: blur(20px) saturate(180%);
         border: 1px solid var(--glass-border);
         border-radius: 24px;
-        padding: 28px;
-        margin-bottom: 28px;
+        padding: 24px;
+        margin-bottom: 20px;
         box-shadow: var(--md-elevation-3);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        flex-shrink: 0;
       }
 
       .search-section:hover {
         box-shadow: var(--md-elevation-4);
-        transform: translateY(-2px);
       }
 
       .search-container {
         display: flex;
         gap: 1rem;
-        max-width: 900px;
-        margin: 0 auto;
+        width: 100%;
       }
 
       .search-input {
@@ -816,11 +862,11 @@
 
       .search-button:hover {
         box-shadow: var(--md-elevation-3);
-        transform: translateY(-2px);
+        transform: translateY(-3px);
       }
 
       .search-button:active {
-        transform: translateY(0);
+        transform: translateY(-1px);
         box-shadow: var(--md-elevation-1);
       }
 
@@ -850,7 +896,7 @@
         background: var(--md-primary);
         color: var(--md-on-primary);
         box-shadow: var(--md-elevation-2);
-        transform: translateY(-2px);
+        transform: translateY(-3px);
       }
 
       .search-results-header {
@@ -902,7 +948,7 @@
 
       .card-inner {
         /* width: 100%; */
-        max-width: 820px;
+        max-width: 1000px;
         height: auto;
         transition: transform 0.9s cubic-bezier(0.2, 1, 0.22, 1);
         transform-style: preserve-3d;
@@ -917,12 +963,13 @@
       .card-back {
         background: var(--md-surface);
         border-radius: 16px;
-        padding: 28px;
+        padding: 40px;
         box-shadow: var(--md-elevation-3);
         backface-visibility: hidden;
         -webkit-backface-visibility: hidden;
         position: relative;
-        min-height: 140px;
+        min-height: 200px;
+        font-size: 1.1rem;
       }
 
       .card-back {
@@ -1118,157 +1165,169 @@
   </head>
   <body>
     <div class="container">
-      <div class="header-container">
-        <h1>
-          <img src="../../icons/icon.svg" alt="Pachydex" class="logo" />
-          Pachydex
-        </h1>
-        <div class="header-stats">
-          <div class="stat-item">
-            <div class="stat-number" id="totalCount">0</div>
-            <div class="stat-label">Total Summaries</div>
+      <!-- Left Sidebar -->
+      <div class="sidebar">
+        <div class="header-container">
+          <h1>
+            <img src="../../icons/icon.svg" alt="Pachydex" class="logo" />
+            Pachydex
+          </h1>
+          <div class="header-stats">
+            <div class="stat-item">
+              <div class="stat-number" id="totalCount">0</div>
+              <div class="stat-label">Total Summaries</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number" id="tagCount">0</div>
+              <div class="stat-label">Unique Tags</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number" id="takeawayCount">0</div>
+              <div class="stat-label">Total Takeaways</div>
+            </div>
           </div>
-          <div class="stat-item">
-            <div class="stat-number" id="tagCount">0</div>
-            <div class="stat-label">Unique Tags</div>
+          <div class="data-controls">
+            <button
+              class="data-button"
+              id="downloadButton"
+              title="Download all your data"
+            >
+              <span>⬇️</span>
+              <span>Download</span>
+            </button>
+            <button
+              class="data-button"
+              id="uploadButton"
+              title="Upload data to restore"
+            >
+              <span>⬆️</span>
+              <span>Upload</span>
+            </button>
+            <button
+              class="data-button"
+              id="takeQuizButton"
+              title="Take a quiz from your summaries"
+            >
+              <span>📝</span>
+              <span>Take Quiz</span>
+            </button>
+            <input type="file" id="uploadInput" accept=".json" />
           </div>
-          <div class="stat-item">
-            <div class="stat-number" id="takeawayCount">0</div>
-            <div class="stat-label">Total Takeaways</div>
-          </div>
-        </div>
-        <div class="data-controls">
-          <button
-            class="data-button"
-            id="downloadButton"
-            title="Download all your data"
-          >
-            <span>⬇️</span>
-            <span>Download</span>
-          </button>
-          <button
-            class="data-button"
-            id="uploadButton"
-            title="Upload data to restore"
-          >
-            <span>⬆️</span>
-            <span>Upload</span>
-          </button>
-          <button
-            class="data-button"
-            id="takeQuizButton"
-            title="Take a quiz from your summaries"
-          >
-            <span>📝</span>
-            <span>Take Quiz</span>
-          </button>
-          <input type="file" id="uploadInput" accept=".json" />
         </div>
       </div>
 
-      <div
-        class="model-status-banner"
-        id="modelStatusBanner"
-        style="display: none"
-      >
-        <div class="model-status-content">
-          <div class="model-status-icon" id="modelStatusIcon">⏳</div>
-          <div class="model-status-info">
-            <div class="model-status-title" id="modelStatusTitle">
-              AI Model Status
+      <!-- Right Main Content -->
+      <div class="main-content">
+        <div
+          class="model-status-banner"
+          id="modelStatusBanner"
+          style="display: none"
+        >
+          <div class="model-status-content">
+            <div class="model-status-icon" id="modelStatusIcon">⏳</div>
+            <div class="model-status-info">
+              <div class="model-status-title" id="modelStatusTitle">
+                AI Model Status
+              </div>
+              <div class="model-status-message" id="modelStatusMessage">
+                Checking model availability...
+              </div>
+              <div
+                class="model-status-progress"
+                id="modelStatusProgress"
+                style="display: none"
+              >
+                <div class="progress-bar">
+                  <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">0%</div>
+              </div>
             </div>
-            <div class="model-status-message" id="modelStatusMessage">
-              Checking model availability...
-            </div>
-            <div
-              class="model-status-progress"
-              id="modelStatusProgress"
+            <button
+              class="model-action-button"
+              id="modelActionButton"
               style="display: none"
             >
-              <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+              Download Model
+            </button>
+          </div>
+        </div>
+
+        <div class="search-section" id="searchSection">
+          <div class="search-container">
+            <input
+              type="text"
+              class="search-input"
+              id="searchInput"
+              placeholder="Search your summaries... (e.g., 'machine learning', 'climate change')"
+            />
+            <button class="search-button" id="searchButton">🔍 Search</button>
+          </div>
+        </div>
+
+        <div class="summaries-container" id="summariesContainer">
+          <div class="loading">Loading your summaries...</div>
+        </div>
+
+        <!-- Quiz Setup Screen (hidden by default) -->
+        <div
+          class="summaries-container"
+          id="quizSetupContainer"
+          style="display: none"
+        >
+          <div id="quizSetupContent">
+            <div class="search-results-header">
+              <div class="search-results-title">📝 Quiz Setup</div>
+              <div style="display: flex; gap: 8px">
+                <button class="data-button" id="startQuizFromSetup">
+                  <span>🚀</span>
+                  <span>Start Quiz</span>
+                </button>
+                <button class="clear-search" id="cancelQuizSetup">
+                  Cancel
+                </button>
               </div>
-              <div class="progress-text" id="progressText">0%</div>
             </div>
-          </div>
-          <button
-            class="model-action-button"
-            id="modelActionButton"
-            style="display: none"
-          >
-            Download Model
-          </button>
-        </div>
-      </div>
 
-      <div class="search-section" id="searchSection">
-        <div class="search-container">
-          <input
-            type="text"
-            class="search-input"
-            id="searchInput"
-            placeholder="Search your summaries... (e.g., 'machine learning', 'climate change')"
-          />
-          <button class="search-button" id="searchButton">🔍 Search</button>
-        </div>
-      </div>
-
-      <div class="summaries-container" id="summariesContainer">
-        <div class="loading">Loading your summaries...</div>
-      </div>
-
-      <!-- Quiz Setup Screen (hidden by default) -->
-      <div
-        class="summaries-container"
-        id="quizSetupContainer"
-        style="display: none"
-      >
-        <div id="quizSetupContent">
-          <div class="search-results-header">
-            <div class="search-results-title">📝 Quiz Setup</div>
-            <div style="display: flex; gap: 8px">
-              <button class="data-button" id="startQuizFromSetup">
-                <span>🚀</span>
-                <span>Start Quiz</span>
-              </button>
-              <button class="clear-search" id="cancelQuizSetup">Cancel</button>
+            <div class="quiz-setup-section">
+              <h3 class="setup-section-title">Select Topics</h3>
+              <div class="tags-selection-container" id="tagsSelectionContainer">
+                <!-- Tags will be dynamically added here -->
+              </div>
+              <label class="select-all-label">
+                <input type="checkbox" id="selectAllTags" />
+                <span>Select All</span>
+              </label>
             </div>
-          </div>
 
-          <div class="quiz-setup-section">
-            <h3 class="setup-section-title">Select Topics</h3>
-            <div class="tags-selection-container" id="tagsSelectionContainer">
-              <!-- Tags will be dynamically added here -->
-            </div>
-            <label class="select-all-label">
-              <input type="checkbox" id="selectAllTags" />
-              <span>Select All</span>
-            </label>
-          </div>
-
-          <div class="quiz-setup-section">
-            <h3 class="setup-section-title">Number of Questions</h3>
-            <div class="question-count-controls">
-              <input
-                type="range"
-                id="questionCountSlider"
-                min="1"
-                max="5"
-                value="3"
-                class="question-slider"
-              />
-              <div class="question-count-display">
-                <span id="questionCountValue">3</span> questions
+            <div class="quiz-setup-section">
+              <h3 class="setup-section-title">Number of Questions</h3>
+              <div class="question-count-controls">
+                <input
+                  type="range"
+                  id="questionCountSlider"
+                  min="1"
+                  max="5"
+                  value="3"
+                  class="question-slider"
+                />
+                <div class="question-count-display">
+                  <span id="questionCountValue">3</span> questions
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Quiz container (hidden by default) -->
-      <div class="summaries-container" id="quizContainer" style="display: none">
-        <div id="quizContent">
-          <!-- Dynamically filled by index.js -->
+        <!-- Quiz container (hidden by default) -->
+        <div
+          class="summaries-container"
+          id="quizContainer"
+          style="display: none"
+        >
+          <div id="quizContent">
+            <!-- Dynamically filled by index.js -->
+          </div>
         </div>
       </div>
     </div>

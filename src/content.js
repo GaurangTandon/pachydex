@@ -1,4 +1,5 @@
 function mainProcess() {
+  console.log('Pachydex: injected content script');
   function escapeMarkdown(text) {
     return text.replace(/([*_`])/g, "\\$1");
   }
@@ -91,6 +92,7 @@ ${transcript}
       return null;
     }
   }
+  let blockedOnCaptcha = false;
 
   /**
    * Converts the given DOM element (typically document.body) to a Markdown string.
@@ -104,6 +106,7 @@ ${transcript}
   async function convertElementToMarkdown(element, retryCount = 0) {
     if (isCaptchaElementPresent() && retryCount < MAX_CAPTCHA_RETRY_COUNT) {
       console.log('retrying because of captcha', retryCount, '/', MAX_CAPTCHA_RETRY_COUNT);
+      blockedOnCaptcha = true;
       // retry for upto some time. if the captcha element is still present after that time, give up and convert it to markdown anyway
       return new Promise(resolve => {
         setTimeout(() => {
@@ -112,6 +115,7 @@ ${transcript}
         }, CATPCHA_RETRY_INTERVAL_MS);
       });
     }
+    blockedOnCaptcha = false;
     if (!element) {
       console.log('Missing element')
       return ["", ""];
@@ -462,6 +466,8 @@ ${transcript}
       sendResponse({ duration, });
     } else if (msg.type === "isAlive") {
       sendResponse({ isAlive: true });
+    } else if (msg.type === 'isCaptcha') {
+      sendResponse({ blockedOnCaptcha });
     }
   });
 

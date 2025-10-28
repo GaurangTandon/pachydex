@@ -1651,16 +1651,16 @@ function showResults(questions, answers) {
     if (isCorrect) score += 1;
 
     const summaryLinkHtml = q.summaryUrl && q.summaryTitle
-      ? `<div style="margin-top: 8px; font-size: 0.9em; color: var(--md-on-surface-variant);">
+      ? `<div style="margin-top: 12px; font-size: 1rem; color: var(--md-on-surface-variant); padding-top: 12px; border-top: 1px solid var(--md-outline);">
            From: <a href="${escapeHtml(q.summaryUrl)}" target="_blank" style="color: var(--md-primary); text-decoration: none;">${escapeHtml(q.summaryTitle)}</a>
          </div>`
       : '';
 
     return `
-      <div class="summary-card" style="margin-bottom:8px;">
-        <div style="font-weight:600">Q${i + 1}: ${escapeHtml(q.question)}</div>
-        <div style="margin-top:8px;">Correct answer: <strong>${escapeHtml(q.options[correct])}</strong></div>
-        <div>Your answer: ${user === null || user === undefined ? '<em>Skipped</em>' : escapeHtml(q.options[user])} ${isCorrect ? '✅' : '❌'}</div>
+      <div class="summary-card" style="margin-bottom:16px; padding: 32px; font-size: 1.1rem;">
+        <div style="font-weight:600; font-size: 1.2rem; margin-bottom: 12px; line-height: 1.5;">Q${i + 1}: ${escapeHtml(q.question)}</div>
+        <div style="margin-top:12px; font-size: 1.05rem; line-height: 1.6;">Correct answer: <strong>${escapeHtml(q.options[correct])}</strong></div>
+        <div style="font-size: 1.05rem; margin-top: 8px; line-height: 1.6;">Your answer: ${user === null || user === undefined ? '<em>Skipped</em>' : escapeHtml(q.options[user])} ${isCorrect ? '✅' : '❌'}</div>
         ${summaryLinkHtml}
       </div>
     `;

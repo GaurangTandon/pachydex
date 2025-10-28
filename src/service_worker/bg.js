@@ -69,11 +69,11 @@ let liveRequests = {};
 // @ts-ignore for debugging
 self.liveRequests = liveRequests;
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'isFocused') {
-    activeFrameId = sender.frameId;
-  }
-});
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//   if (message.type === 'isFocused') {
+//     activeFrameId = sender.frameId;
+//   }
+// });
 
 /**
  *
@@ -215,10 +215,14 @@ export function getCacheWrittenToDB(tabId, url) {
  * @param {string} url 
  * @returns 
  */
-export function getAndStoreAvailableCachePromise(tabId, title, url) {
+export async function getAndStoreAvailableCachePromise(tabId, title, url) {
   const tabNormalizedURL = getNormalizedURL(url);
   const key = getKey(tabId);
-  if (getMatchingLiveRequest(tabId, url)) {
+  let match = !!getMatchingLiveRequest(tabId, url);
+  if (!match) {
+    match = await getSecondaryMatchingLiveRequest(tabId, activeFrameId, url);
+  }
+  if (match) {
     if (liveRequests[key].hasStoredInDB) {
       console.debug('Has in cache and has stored to DB');
       // if result is already stored to db, return it directly
@@ -343,7 +347,8 @@ async function getSecondaryMatchingLiveRequest(tabId, frameId, tabOriginalURL) {
           }
         }
         diffCount += Math.abs(a.length - b.length);
-        if (diffCount / count <= 0.01) {
+        console.log({ diffCount, count, ratio: diffCount / count })
+        if (diffCount / count <= 0.20) {
           // Same, update the live URL and call it a day
           liveRequests[key].url = getNormalizedURL(tabOriginalURL);
           return true;

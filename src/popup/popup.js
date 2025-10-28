@@ -46,7 +46,7 @@ const STATUS_MAP = {
   },
 };
 
-async function updateStatus(statusText, statusTitle, tabUrl) {
+async function updateStatus(statusText, statusTitle, tabUrl, hasCaptcha) {
   const isHomePage = tabUrl.includes('chrome-extension://ocmkjnimcaoagbfhmobfnjefjkclhham/src/summary_view/index.html');
   const statusContent = document.getElementById('statusContent');
   const statusIcon = document.getElementById('statusIcon');
@@ -61,8 +61,9 @@ async function updateStatus(statusText, statusTitle, tabUrl) {
     status.text = statusTitle;
   }
 
+  hasCaptcha &&= statusText === '⟳' || statusText === '⏳';
   statusIcon.textContent = status.icon;
-  statusTextEl.textContent = status.text;
+  statusTextEl.textContent = hasCaptcha ? 'Waiting for you to solve the captcha...' : status.text;
 
   // Clear any existing summary display
   const existingSummary = document.querySelector('.summary-display');
@@ -119,7 +120,8 @@ async function updateUI() {
   // Get and display current status from badge
   const badgeText = (await chrome.action.getBadgeText({ tabId: tab.id }))?.[0];
   const badgeTitle = (await chrome.action.getTitle({ tabId: tab.id }));
-  await updateStatus(badgeText, badgeTitle, tab.url);
+  const hasCaptcha = (await chrome.tabs.sendMessage(tab.id, { type: 'isCaptcha' }, { frameId: 0, }))?.blockedOnCaptcha;
+  await updateStatus(badgeText, badgeTitle, tab.url, hasCaptcha);
 
   // Update settings section
   const blacklist = await getBlacklist();
