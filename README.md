@@ -93,14 +93,9 @@ To install locally, you can:
 5. Options page: shows the list of previously indexed pages and allows the user to search through them, or download/upload their list of summaries.
 6. Popup: allows the user to enable/disable summarization on a specific page, as well as shows the summarization status on the current page.
 
-## Notes on real world usage
-
-1. Taking a reasonably high assumption of 20 article reads per day for 365 days of the year, we end up with ~7000 entries in one year, which takes up XX MB amount of space on disk. I tested search on this and it took ??ms to return relevant results.
-1. The zip file for the extension is less than 300MB which is well within the limit for a [maximum Chrome extension size (2GB)](https://developer.chrome.com/docs/webstore/publish)
-
 ## Future goals
 
-1. Stats section to show how much you've read every week or month
-2. Read in-detail content of PDFs and Google Docs
-3. Improve Quiz questions to support free text answers in addition to choice-based questions
-4. Time required to be spent on a page should be proportional to the length of the content on the page (currently fixed to 10 seconds)
+1. Stats section to show how many articles you've read every week or month
+2. Deeper integration with more content and video formats, like PDF and Google Docs
+3. For active recall quiz questions, prioritize articles you've read for a longer time.
+4. Better handle longer articles by focusing the takeaways on parts of the article you've actually read
