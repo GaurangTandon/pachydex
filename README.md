@@ -1,4 +1,8 @@
-# Pachydex 🐘
+<div style="text-align: center;">
+   <img src="./icons/icon.svg" alt="Pachydex logo" width="96" />
+   <br />
+   <h1>Pachydex</h1>
+</div>
 
 Your AI-Powered Memory Vault - Pachydex never forgets what you've read. Semantically search through every article and video you've seen on the web.
 
@@ -55,7 +59,11 @@ Pachydex supports a diverse set of use cases across different needs:
 
 ## Using / Contributing
 
-You can install directly from the [Chrome Web Store]() - pending review.
+### Chrome Web Store (old version)
+
+You can install directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/pachydex/ocmkjnimcaoagbfhmobfnjefjkclhham?authuser=0&hl=es)
+
+### GitHub (latest version)
 
 To install locally, you can:
 
